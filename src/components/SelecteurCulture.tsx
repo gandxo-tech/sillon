@@ -35,7 +35,7 @@ export default function SelecteurCulture({ actuelle, suivante, onChange, compact
           <span>Culture envisagée ensuite</span>
           <input
             type="text"
-            value={texteAffiche(actuelle)}
+            value={texteAffiche(suivante)}
             onChange={(e) => onChange('suivante', e.target.value)}
             placeholder="soja, blé, sorgho, couvert…"
             autoComplete="off"
