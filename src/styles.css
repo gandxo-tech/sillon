@@ -1880,3 +1880,62 @@ button {
   padding: 8px 12px;
   max-width: 96ch;
 }
+
+.import-csv {
+  margin: 10px 0 4px;
+  font-size: 13px;
+  color: var(--encre-doux);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.import-csv .lien {
+  font-weight: 600;
+}
+
+.conclusion-simple {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  border: 2px solid var(--bleu);
+}
+
+.conclusion-simple.conclusion-oui {
+  background: #f0f3ff;
+  border-color: var(--bleu);
+}
+
+.conclusion-simple.conclusion-non {
+  background: #fff7e0;
+  border-color: var(--jaune);
+}
+
+.conclusion-badge {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  background: var(--bleu);
+}
+
+.conclusion-non .conclusion-badge {
+  background: var(--bleu-nuit);
+  color: var(--jaune);
+}
+
+.conclusion-simple p {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}

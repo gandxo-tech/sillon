@@ -9,6 +9,8 @@ export interface Rapport {
   parle: string;
   /** Réponses clés, courtes et faciles à comprendre. */
   cles: string[];
+  /** Conclusion en une phrase, réponse oui/non sur la culture suivante. */
+  conclusion: { verdict: 'oui' | 'non'; phrase: string };
   synthese: string[];
   sections: { titre: string; paragraphes: string[]; puces?: string[] }[];
   recommandation: {
@@ -221,7 +223,23 @@ export function construireRapport(
     ],
   });
 
+  const cultureSuivanteNom =
+    reference.cultures.length > 1 ? reference.cultures[1].court : reference.cultures[0]?.court ?? 'la culture suivante';
+  const cultureActuelleNom = reference.cultures[0]?.court ?? 'la culture en place';
+  const conclusion = reference.viable
+    ? {
+        verdict: 'oui' as const,
+        phrase: `Oui, vous pouvez faire ${cultureSuivanteNom} après ${cultureActuelleNom} sur ce champ.`,
+      }
+    : {
+        verdict: 'non' as const,
+        phrase: `Non, pas dans ces conditions : ${(
+          reference.blocages[0] ?? 'les conditions du champ ne conviennent pas'
+        ).toLowerCase()}.`,
+      };
+
   const cles: string[] = [
+    `Conclusion : ${conclusion.verdict === 'oui' ? 'oui' : 'non'} — ${conclusion.phrase}`,
     `Lieu : ${p.lieu.nom}. Pluie ${fr(c.pluieAnnuelle)} mm/an, saison sans gel ${fr(saison.duree)} jours.`,
     `Sol : ${s.texture}, pH ${fr(s.ph, 1)}, matière organique ${fr(s.mo, 1)} %.`,
     `Déficit hydrique de saison : ${fr(c.deficitSaison)} mm (${fr(c.et0Saison > 0 ? (c.deficitSaison / c.et0Saison) * 100 : 0)} % de la demande).`,
@@ -260,6 +278,7 @@ export function construireRapport(
   return {
     parle,
     cles,
+    conclusion,
     synthese,
     sections,
     recommandation: {

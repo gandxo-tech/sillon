@@ -52,6 +52,50 @@ export default function App() {
   const [cycleLibre, setCycleLibre] = useState('');
   const [tempDeltaCustom, setTempDeltaCustom] = useState(0);
   const requete = useRef(0);
+  const fichierRef = useRef<HTMLInputElement>(null);
+
+  const importerFichier = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fichier = e.target.files?.[0];
+    if (!fichier) return;
+    const lecteur = new FileReader();
+    lecteur.onload = () => {
+      const texte = String(lecteur.result ?? '');
+      try {
+        const lignes = texte.trim().split(/\r?\n/).filter(Boolean);
+        if (!lignes.length) throw new Error('fichier vide');
+        const sep = lignes[0].includes(';') ? ';' : ',';
+        const entete = lignes[0].split(sep).map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+        const get = (cles: string[]) => {
+          for (const c of cles) {
+            const i = entete.findIndex((h) => cles.includes(h) || h.includes(c));
+            if (i >= 0 && lignes[1]) {
+              const cols = lignes[1].split(sep).map((x) => x.trim().replace(/^"|"$/g, ''));
+              if (cols[i]) return cols[i];
+            }
+          }
+          return '';
+        };
+        const lat = Number(get(['lat', 'latitude']));
+        const lon = Number(get(['lon', 'longitude', 'long']));
+        const nom = get(['lieu', 'place', 'nom', 'location', 'commune']);
+        const act = get(['actuelle', 'current', 'culture_actuelle', 'culture en place', 'culture1']);
+        const suiv = get(['suivante', 'next', 'culture_suivante', 'culture2']);
+        const irr = get(['irrigation', 'irrigation_mm', 'eau']);
+        const cycle = get(['cycle', 'rotation', 'cycle_complet', 'succession']);
+        if (act) setCultureActuelle(act);
+        if (suiv) setCultureSuivante(suiv);
+        if (irr) setIrrigation(Number(irr) || 0);
+        if (cycle) setCycleLibre(cycle);
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+          analyser(lat, lon, nom || `${lat.toFixed(3)}, ${lon.toFixed(3)}`);
+        }
+      } catch {
+        window.alert('Import impossible : fichier CSV attendu (lieu, lat, lon, actuelle, suivante…).');
+      }
+    };
+    lecteur.readAsText(fichier);
+    e.target.value = '';
+  };
 
   const analyser = async (lat: number, lon: number, nom: string) => {
     const id = requete.current + 1;
@@ -257,6 +301,14 @@ export default function App() {
           />
 
           {noteEstimation}
+
+          <div className="import-csv">
+            <button type="button" className="lien" onClick={() => fichierRef.current?.click()}>
+              Importer un fichier CSV
+            </button>
+            <span> (CSV ; PDF non pris en charge pour l’instant — lieu, latitude, longitude, culture en place, culture suivante…)</span>
+            <input ref={fichierRef} type="file" accept=".csv,.txt" onChange={importerFichier} hidden />
+          </div>
 
           <p className="hero-note">
             Un lieu, deux cultures, aucun compte. Huit sources publiques sont interrogées à chaque
@@ -476,6 +528,13 @@ export default function App() {
                 <span className="section-num">05</span>
                 <h3>La recommandation, et ses angles morts</h3>
               </div>
+
+              {rapport.conclusion && (
+                <div className={`conclusion-simple conclusion-${rapport.conclusion.verdict}`}>
+                  <span className="conclusion-badge">{rapport.conclusion.verdict === 'oui' ? 'Oui' : 'Non'}</span>
+                  <p>{rapport.conclusion.phrase}</p>
+                </div>
+              )}
 
               {meilleur && (
                 <Verdict retenu={meilleur} reference={rotations[0]} condition={condition.nom} />
