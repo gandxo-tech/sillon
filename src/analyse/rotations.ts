@@ -4,21 +4,29 @@ export interface Culture {
   id: string;
   nom: string;
   court: string;
+  /** Pictogramme : permet de reconnaître la culture sans lire. */
   picto: string;
+  /** Teinte de la pastille, pour distinguer les cultures d'un coup d'œil. */
   teinte: string;
   famille: string;
+  /** Coefficient cultural moyen sur la saison. */
   kc: number;
+  /** Part de la saison de croissance réellement occupée. */
   partSaison: number;
+  /** Jours de croissance nécessaires dans la saison. */
   besoinJours: number;
   azoteDemande: number;
   azoteFixe: number;
   residus: number;
   couverture: number;
   facteurC: number;
+  /** Marge brute indicative, €/ha — ordre de grandeur à remplacer par vos prix. */
   marge: number;
   toleranceSecheresse: number;
+  /** Part de la réserve utile du sol que la culture peut réellement mobiliser. */
   facteurReserve: number;
   retour: number;
+  /** Culture pluriannuelle : les années consécutives forment un seul stand. */
   perenne?: boolean;
   phMin: number;
   phMax: number;
@@ -26,39 +34,59 @@ export interface Culture {
 
 export const CULTURES: Record<string, Culture> = {
   mais: {
-    id: 'mais', nom: 'Maïs grain', court: 'Maïs', picto: '🌽', teinte: '#fff200', famille: 'Poacée',
+    id: 'mais', nom: 'Maïs grain', court: 'Maïs', picto: 'M', teinte: '#fff200', famille: 'Poacée',
     kc: 1.0, partSaison: 0.85, besoinJours: 130, azoteDemande: 175, azoteFixe: 0,
     residus: 5.2, couverture: 0.62, facteurC: 0.3, marge: 850, toleranceSecheresse: 0.34, facteurReserve: 1.0, retour: 2, phMin: 5.8, phMax: 7.6,
   },
   soja: {
-    id: 'soja', nom: 'Soja', court: 'Soja', picto: '🫘', teinte: '#0018ff', famille: 'Fabacée',
+    id: 'soja', nom: 'Soja', court: 'Soja', picto: 'S', teinte: '#0018ff', famille: 'Fabacée',
     kc: 0.92, partSaison: 0.8, besoinJours: 125, azoteDemande: 35, azoteFixe: 105,
     residus: 3.1, couverture: 0.78, facteurC: 0.22, marge: 700, toleranceSecheresse: 0.45, facteurReserve: 1.0, retour: 3, phMin: 6.0, phMax: 7.5,
   },
   ble: {
-    id: 'ble', nom: 'Blé tendre d’hiver', court: 'Blé', picto: '🌾', teinte: '#8b96f5', famille: 'Poacée',
+    id: 'ble', nom: 'Blé tendre d’hiver', court: 'Blé', picto: 'B', teinte: '#8b96f5', famille: 'Poacée',
     kc: 0.72, partSaison: 0.62, besoinJours: 110, azoteDemande: 115, azoteFixe: 0,
     residus: 3.6, couverture: 0.86, facteurC: 0.14, marge: 520, toleranceSecheresse: 0.55, facteurReserve: 1.15, retour: 3, phMin: 5.5, phMax: 7.8,
   },
   sorgho: {
-    id: 'sorgho', nom: 'Sorgho grain', court: 'Sorgho', picto: '🌿', teinte: '#000b5c', famille: 'Poacée',
+    id: 'sorgho', nom: 'Sorgho grain', court: 'Sorgho', picto: 'R', teinte: '#000b5c', famille: 'Poacée',
     kc: 0.82, partSaison: 0.78, besoinJours: 115, azoteDemande: 105, azoteFixe: 0,
     residus: 4.1, couverture: 0.6, facteurC: 0.26, marge: 560, toleranceSecheresse: 0.85, facteurReserve: 1.35, retour: 3, phMin: 5.5, phMax: 8.2,
   },
   couvert: {
-    id: 'couvert', nom: 'Couvert seigle / vesce', court: 'Couvert', picto: '🌱', teinte: '#7f8ccc', famille: 'Mixte',
+    id: 'couvert', nom: 'Couvert seigle / vesce', court: 'Couvert', picto: 'C', teinte: '#7f8ccc', famille: 'Mixte',
     kc: 0.35, partSaison: 0.35, besoinJours: 60, azoteDemande: 0, azoteFixe: 45,
     residus: 2.6, couverture: 1, facteurC: 0.05, marge: -140, toleranceSecheresse: 0.9, facteurReserve: 0.7, retour: 1, phMin: 4.8, phMax: 8.4,
   },
   luzerne: {
-    id: 'luzerne', nom: 'Luzerne (3 ans)', court: 'Luzerne', picto: '🍀', teinte: '#3346ff', famille: 'Fabacée',
+    id: 'luzerne', nom: 'Luzerne (3 ans)', court: 'Luzerne', picto: 'L', teinte: '#3346ff', famille: 'Fabacée',
     kc: 0.95, partSaison: 1, besoinJours: 120, azoteDemande: 25, azoteFixe: 190,
     residus: 4.2, couverture: 0.95, facteurC: 0.08, marge: 600, toleranceSecheresse: 0.72, facteurReserve: 1.7, retour: 4, perenne: true, phMin: 6.2, phMax: 8.0,
   },
   pois: {
-    id: 'pois', nom: 'Pois protéagineux', court: 'Pois', picto: '🫛', teinte: '#5a67c9', famille: 'Fabacée',
+    id: 'pois', nom: 'Pois protéagineux', court: 'Pois', picto: 'P', teinte: '#5a67c9', famille: 'Fabacée',
     kc: 0.78, partSaison: 0.6, besoinJours: 100, azoteDemande: 20, azoteFixe: 85,
     residus: 2.2, couverture: 0.72, facteurC: 0.18, marge: 480, toleranceSecheresse: 0.5, facteurReserve: 0.9, retour: 4, phMin: 6.0, phMax: 7.8,
+  },
+  manioc: {
+    id: 'manioc', nom: 'Manioc', court: 'Manioc', picto: 'M', teinte: '#3346ff', famille: 'Euphorbiacée',
+    kc: 0.6, partSaison: 0.9, besoinJours: 300, azoteDemande: 80, azoteFixe: 0,
+    residus: 4.0, couverture: 0.8, facteurC: 0.15, marge: 500, toleranceSecheresse: 0.8, facteurReserve: 1.2, retour: 3, phMin: 5.0, phMax: 7.5,
+  },
+  niebe: {
+    id: 'niebe', nom: 'Niébé', court: 'Niébé', picto: 'N', teinte: '#0018ff', famille: 'Fabacée',
+    kc: 0.75, partSaison: 0.5, besoinJours: 75, azoteDemande: 20, azoteFixe: 70,
+    residus: 2.0, couverture: 0.6, facteurC: 0.2, marge: 350, toleranceSecheresse: 0.7, facteurReserve: 0.8, retour: 2, phMin: 5.5, phMax: 7.0,
+  },
+  arachide: {
+    id: 'arachide', nom: 'Arachide', court: 'Arachide', picto: 'A', teinte: '#fff200', famille: 'Fabacée',
+    kc: 0.7, partSaison: 0.6, besoinJours: 110, azoteDemande: 30, azoteFixe: 60,
+    residus: 2.5, couverture: 0.7, facteurC: 0.22, marge: 400, toleranceSecheresse: 0.65, facteurReserve: 0.9, retour: 3, phMin: 5.5, phMax: 7.0,
+  },
+  igname: {
+    id: 'igname', nom: 'Igname', court: 'Igname', picto: 'I', teinte: '#8b96f5', famille: 'Dioscoréacée',
+    kc: 0.85, partSaison: 0.8, besoinJours: 270, azoteDemande: 100, azoteFixe: 0,
+    residus: 3.5, couverture: 0.75, facteurC: 0.18, marge: 700, toleranceSecheresse: 0.6, facteurReserve: 1.1, retour: 3, phMin: 5.5, phMax: 7.0,
   },
 };
 
@@ -68,7 +96,9 @@ export interface DefinitionScenario {
   accroche: string;
   role: string;
   cycle: string[];
+  /** Cultures déjà résolues, pour une rotation saisie librement. */
   cultures?: Culture[];
+  /** Vrai si l'une des cultures est hors base : coefficients génériques. */
   approx?: boolean;
 }
 
@@ -104,7 +134,7 @@ export const SCENARIOS: DefinitionScenario[] = [
 ];
 
 export interface Condition {
-  id: 'actuel' | 'secheresse' | 'chaud' | 'projection';
+  id: 'actuel' | 'secheresse' | 'chaud' | 'projection' | 'custom';
   nom: string;
   pluiePct: number;
   tempDelta: number;
@@ -156,7 +186,7 @@ export interface ContexteRotation {
   irrigation: number;
 }
 
-export function construireContexte(p: Profil): ContexteRotation {
+export function construireContexte(p: Profil, irrigation = 0): ContexteRotation {
   const pluieAnnuelle = Math.min(2400, Math.max(150, p.climat.pluieAnnuelle));
   return {
     pluieSaison: p.climat.pluieSaison,
@@ -169,7 +199,7 @@ export function construireContexte(p: Profil): ContexteRotation {
     argile: p.sol.argile,
     sable: p.sol.sable,
     awcMm: p.sol.awcMm,
-    irrigation: 0,
+    irrigation,
   };
 }
 
@@ -254,6 +284,8 @@ export function calculerScenario(
     const culture = parId.get(id)!;
     if (culture.perenne) continue;
     const intervalle = n / nombre;
+    // Une culture revient trop tôt seulement si l'écart tombe sous 60 % du
+    // délai conseillé : une alternance courte reste praticable, une répétition non.
     if (intervalle < culture.retour * 0.6) {
       blocages.push(
         `Retour sur ${culture.court} tous les ${intervalle.toLocaleString('fr-FR', {
@@ -312,10 +344,13 @@ export function calculerScenario(
 export interface ChoixCultures {
   actuelle: string;
   suivante: string;
+  /** Cycle libre saisi par l'utilisateur, cultures séparées par des virgules. */
+  cycle?: string;
 }
 
 export const CULTURES_LISTE = Object.values(CULTURES);
 
+/** Nom usuel saisi par l'utilisateur → culture de la base. */
 const SYNONYMES: Record<string, string> = {
   corn: 'mais',
   'mais grain': 'mais',
@@ -333,6 +368,16 @@ const SYNONYMES: Record<string, string> = {
   'pois fourrager': 'pois',
   'engrais vert': 'couvert',
   seigle: 'couvert',
+  cassava: 'manioc',
+  manioc: 'manioc',
+  cowpea: 'niebe',
+  'niebe': 'niebe',
+  niébé: 'niebe',
+  peanut: 'arachide',
+  groundnut: 'arachide',
+  arachide: 'arachide',
+  yam: 'igname',
+  igname: 'igname',
   vesce: 'couvert',
   moutarde: 'couvert',
   phacelie: 'couvert',
@@ -354,13 +399,14 @@ const titreCase = (texte: string) => {
   return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
 };
 
+/** Coefficients moyens pour une culture absente de la base. */
 function cultureGenerique(texte: string): Culture {
   const court = titreCase(texte).slice(0, 20) || 'Culture libre';
   return {
     id: `perso:${normaliser(texte).replace(/ /g, '-') || 'libre'}`,
     nom: court,
     court,
-    picto: '🌱',
+    picto: 'X',
     teinte: '#8b96f5',
     famille: 'Hors base',
     kc: 0.88,
@@ -382,9 +428,11 @@ function cultureGenerique(texte: string): Culture {
 
 export interface CultureResolue {
   culture: Culture;
+  /** Vrai si le texte saisi ne correspond à aucune culture connue. */
   approx: boolean;
 }
 
+/** Accepte un identifiant de la base, un nom usuel, ou un texte libre. */
 export function resoudreCulture(texte: string): CultureResolue {
   const brut = (texte ?? '').trim();
   const cle = normaliser(brut);
@@ -397,9 +445,11 @@ export function resoudreCulture(texte: string): CultureResolue {
 
   const viaSynonyme = SYNONYMES[cle];
   if (viaSynonyme) {
+    // On garde les coefficients de la culture proche, mais le nom saisi.
     return { culture: { ...CULTURES[viaSynonyme], court: titreCase(brut) }, approx: false };
   }
 
+  // Saisie partielle : « maïs », « soja bio »…
   const contenu = Object.values(CULTURES).find(
     (c) => cle.length >= 3 && (cle.includes(normaliser(c.court)) || normaliser(c.court).includes(cle)),
   );
@@ -408,15 +458,33 @@ export function resoudreCulture(texte: string): CultureResolue {
   return { culture: cultureGenerique(brut), approx: true };
 }
 
+/** La rotation de l'utilisateur remplace la référence par défaut. */
 export function scenarioUtilisateur(choix: ChoixCultures): DefinitionScenario {
-  const a = resoudreCulture(choix.actuelle);
-  const s = resoudreCulture(choix.suivante);
-  const approx = a.approx || s.approx;
-  const cultures = [a.culture, s.culture];
+  const cycleLibre = (choix.cycle ?? '').trim();
+  let cultures: Culture[];
+  let approx = false;
+  let accroche: string;
+  if (cycleLibre) {
+    const morceaux = cycleLibre.split(/[,;›]+/).map((x) => x.trim()).filter(Boolean);
+    const resolus = morceaux.map((m) => resoudreCulture(m));
+    cultures = resolus.map((r) => r.culture);
+    approx = resolus.some((r) => r.approx);
+    accroche = cultures.map((c) => c.court).join(' — ') + (approx ? ' (estimé)' : '');
+  } else {
+    const a = resoudreCulture(choix.actuelle);
+    const s = resoudreCulture(choix.suivante);
+    cultures = [a.culture, s.culture];
+    approx = a.approx || s.approx;
+    accroche = `${a.culture.court} — ${s.culture.court}${approx ? ' (estimé)' : ''}`;
+  }
+  if (!cultures.length) {
+    const a = resoudreCulture(choix.actuelle || 'mais');
+    cultures = [a.culture];
+  }
   return {
     id: 'utilisateur',
     nom: 'Votre rotation',
-    accroche: `${a.culture.court} — ${s.culture.court}${approx ? ' (estimé)' : ''}`,
+    accroche,
     role: 'Votre point de départ',
     cycle: cultures.map((c) => c.id),
     cultures,

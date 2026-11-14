@@ -45,8 +45,12 @@ export default function App() {
   const [condition, setCondition] = useState<Condition>(CONDITIONS[0]);
   const [previsions, setPrevisions] = useState<Previsions | null>(null);
   const [projection, setProjection] = useState<Projection | null>(null);
-  const [cultureActuelle, setCultureActuelle] = useState('mais');
-  const [cultureSuivante, setCultureSuivante] = useState('soja');
+  const [cultureActuelle, setCultureActuelle] = useState('');
+  const [cultureSuivante, setCultureSuivante] = useState('');
+  const [irrigation, setIrrigation] = useState(0);
+  const [pluiePctCustom, setPluiePctCustom] = useState(0);
+  const [cycleLibre, setCycleLibre] = useState('');
+  const [tempDeltaCustom, setTempDeltaCustom] = useState(0);
   const requete = useRef(0);
 
   const analyser = async (lat: number, lon: number, nom: string) => {
@@ -114,17 +118,27 @@ export default function App() {
   };
 
   const conditions = useMemo<Condition[]>(() => {
-    if (!projection) return CONDITIONS;
+    const base = projection
+      ? [
+          ...CONDITIONS,
+          {
+            id: 'projection' as const,
+            nom: `Projection 2045–2049 (${projection.modele.replace(/_/g, '-')})`,
+            pluiePct: Math.round(projection.deltaP),
+            tempDelta: Number(projection.deltaT.toFixed(1)),
+          },
+        ]
+      : [...CONDITIONS];
     return [
-      ...CONDITIONS,
+      ...base,
       {
-        id: 'projection',
-        nom: `Projection 2045–2049 (${projection.modele.replace(/_/g, '-')})`,
-        pluiePct: Math.round(projection.deltaP),
-        tempDelta: Number(projection.deltaT.toFixed(1)),
+        id: 'custom' as const,
+        nom: `Personnalisé (${pluiePctCustom >= 0 ? '+' : ''}${pluiePctCustom} % pluie, ${tempDeltaCustom >= 0 ? '+' : ''}${tempDeltaCustom} °C)`,
+        pluiePct: pluiePctCustom,
+        tempDelta: tempDeltaCustom,
       },
     ];
-  }, [projection]);
+  }, [projection, pluiePctCustom, tempDeltaCustom]);
 
   const sourcesHorizon = useMemo<SourceStatut[]>(() => {
     const liste: SourceStatut[] = [];
@@ -152,8 +166,8 @@ export default function App() {
   }, [previsions, projection]);
 
   const contexte = useMemo(
-    () => (etat.statut === 'pret' ? construireContexte(etat.profil) : null),
-    [etat],
+    () => (etat.statut === 'pret' ? construireContexte(etat.profil, irrigation) : null),
+    [etat, irrigation],
   );
   const rotations = useMemo(
     () =>
@@ -161,6 +175,7 @@ export default function App() {
         ? construireScenarios(contexte, condition, {
             actuelle: cultureActuelle,
             suivante: cultureSuivante,
+            cycle: cycleLibre,
           })
         : [],
     [contexte, condition, cultureActuelle, cultureSuivante],
@@ -213,7 +228,7 @@ export default function App() {
             </div>
           </div>
           <p className="top-note">
-            Observation de la Terre en direct · NASA POWER · ERA5 · SoilGrids · SRTM · GIBS
+            Observation de la Terre en direct · NASA POWER (pluie, température, humidité GWETTOP) · ERA5 · SoilGrids · SRTM · GIBS
           </p>
         </div>
       </header>
@@ -303,6 +318,11 @@ export default function App() {
                 <h3>Synthèse</h3>
               </div>
               <div className="synthese">
+                <ul className="cles">
+                  {rapport.cles.map((c) => (
+                    <li key={c}>{c}</li>
+                  ))}
+                </ul>
                 {rapport.synthese.map((par) => (
                   <p key={par.slice(0, 40)}>{par}</p>
                 ))}
@@ -370,6 +390,70 @@ export default function App() {
               />
 
               {noteEstimation}
+
+              <label className="cycle-libre">
+                <span>Cycle complet (optionnel, cultures séparées par des virgules)</span>
+                <input
+                  type="text"
+                  value={cycleLibre}
+                  onChange={(e) => setCycleLibre(e.target.value)}
+                  placeholder="maïs, soja, blé, couvert"
+                  autoComplete="off"
+                />
+              </label>
+
+              <div className="contraintes">
+                <h4>Contraintes locales</h4>
+                <label>
+                  Irrigation disponible (mm sur la saison)
+                  <input
+                    type="number"
+                    min={0}
+                    max={500}
+                    value={irrigation}
+                    onChange={(e) => setIrrigation(Number(e.target.value) || 0)}
+                  />
+                </label>
+                <label>
+                  Pluie de saison : {pluiePctCustom >= 0 ? '+' : ''}{pluiePctCustom} %
+                  <input
+                    type="range"
+                    min={-40}
+                    max={40}
+                    value={pluiePctCustom}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setPluiePctCustom(v);
+                      setCondition({
+                        id: 'custom',
+                        nom: `Personnalisé (${v >= 0 ? '+' : ''}${v} % pluie, ${tempDeltaCustom >= 0 ? '+' : ''}${tempDeltaCustom} °C)`,
+                        pluiePct: v,
+                        tempDelta: tempDeltaCustom,
+                      });
+                    }}
+                  />
+                </label>
+                <label>
+                  Température : {tempDeltaCustom >= 0 ? '+' : ''}{tempDeltaCustom} °C
+                  <input
+                    type="range"
+                    min={-2}
+                    max={4}
+                    step={0.5}
+                    value={tempDeltaCustom}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setTempDeltaCustom(v);
+                      setCondition({
+                        id: 'custom',
+                        nom: `Personnalisé (${pluiePctCustom >= 0 ? '+' : ''}${pluiePctCustom} % pluie, ${v >= 0 ? '+' : ''}${v} °C)`,
+                        pluiePct: pluiePctCustom,
+                        tempDelta: v,
+                      });
+                    }}
+                  />
+                </label>
+              </div>
 
               <RotationTable
                 resultats={rotations}
@@ -473,11 +557,10 @@ export default function App() {
                 ))}
               </div>
               <p className="methode-note">
-                Méthode : pluie et températures NASA POWER (2015–2024) ; ET0 ERA5 (Penman-Monteith
+                Méthode : pluie et températures NASA POWER (2016–2025) ; ET0 ERA5 (2021–2025, Penman-Monteith
                 FAO-56, repli Hargreaves) ; sol SoilGrids 0–60 cm ; pente calculée sur cinq points
                 espacés d’un kilomètre ; érosion RUSLE avec R dérivé de la pluie annuelle, K issu de
-                la texture, LS de la pente mesurée et C de la couverture du cycle ; azote et matière
-                organique issus de coefficients agronomiques standards.
+                la texture, LS de la pente mesurée et C de la couverture du cycle ;                 azote et matière organique issus de coefficients agronomiques standards. ET0 = demande en eau de l’air ; K = sensibilité du sol à l’érosion ; RUSLE = estimation de l’érosion à partir de la pluie, du sol, de la pente et du couvert.
               </p>
             </section>
           </div>
@@ -505,7 +588,7 @@ export default function App() {
           </p>
           <p className="footer-signature">
             Fait par l’équipe « Soil AI Crew » — développé par DAOUDA Abdou Chahid, Exaucé GBAGUIDI,
-            Pancrace KANHONOU.
+            Pancrace KANHONOU. Contributions : github.com/daouda-4
           </p>
         </div>
       </footer>

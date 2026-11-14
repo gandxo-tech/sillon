@@ -39,8 +39,7 @@ export default function BoutonEcoute({ texte }: { texte: string }) {
       onClick={basculer}
       aria-pressed={parle}
     >
-      <span aria-hidden="true">{parle ? '■' : '▶'}</span>
-      {parle ? ' Arrêter' : ' Écouter le résumé'}
+      {parle ? 'Arrêter la lecture' : 'Écouter le résumé'}
     </button>
   );
 }

@@ -5,7 +5,10 @@ const fr = (v: number, d = 0) =>
   Number.isFinite(v) ? v.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
 
 export interface Rapport {
+  /** Résumé parlé : phrases courtes, sans symboles, pour la lecture à voix haute. */
   parle: string;
+  /** Réponses clés, courtes et faciles à comprendre. */
+  cles: string[];
   synthese: string[];
   sections: { titre: string; paragraphes: string[]; puces?: string[] }[];
   recommandation: {
@@ -194,7 +197,7 @@ export function construireRapport(
     alertes.push('La luzerne suppose un débouché fourrage fiable dans un rayon de 40 km.');
   }
   alertes.push(
-    'Les marges sont des ordres de grandeur européens : remplacez-les par vos prix et vos aides avant toute décision.',
+    'Les marges sont des ordres de grandeur indicatifs : remplacez-les par vos prix, vos aides et votre pays avant toute décision.',
   );
 
   const alternatives = classement
@@ -217,6 +220,16 @@ export function construireRapport(
       'Le sol est décrit à 250 m de résolution : la parcelle est probablement plus hétérogène que ce chiffre. Une analyse de terre reste la seule mesure qui engage.',
     ],
   });
+
+  const cles: string[] = [
+    `Lieu : ${p.lieu.nom}. Pluie ${fr(c.pluieAnnuelle)} mm/an, saison sans gel ${fr(saison.duree)} jours.`,
+    `Sol : ${s.texture}, pH ${fr(s.ph, 1)}, matière organique ${fr(s.mo, 1)} %.`,
+    `Déficit hydrique de saison : ${fr(c.deficitSaison)} mm (${fr(c.et0Saison > 0 ? (c.deficitSaison / c.et0Saison) * 100 : 0)} % de la demande).`,
+    `Meilleure rotation : ${retenu.def.nom}, ${fr(retenu.scoreGlobal)} sur 100.`,
+    retenu.def.id === reference.def.id
+      ? 'Votre rotation actuelle reste la meilleure sur ce champ.'
+      : `Gain : ${fr(retenu.scoreGlobal - reference.scoreGlobal)} points par rapport à votre rotation.`,
+  ];
 
   const pourParler = (t: string) =>
     t
@@ -246,6 +259,7 @@ export function construireRapport(
 
   return {
     parle,
+    cles,
     synthese,
     sections,
     recommandation: {

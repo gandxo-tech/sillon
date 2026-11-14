@@ -14,7 +14,7 @@ export default function Verdict({ retenu, reference, condition }: Props) {
   return (
     <div className={`verdict ${estLaVotre ? 'verdict-vous' : 'verdict-choix'}`}>
       <div className="verdict-icone" aria-hidden="true">
-        {estLaVotre ? '✓' : '→'}
+        {estLaVotre ? 'OK' : '>'}
       </div>
       <div className="verdict-corps">
         <p className="verdict-etiquette">

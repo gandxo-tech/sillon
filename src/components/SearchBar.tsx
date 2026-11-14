@@ -42,7 +42,7 @@ export default function SearchBar({ onChoix, chargement }: Props) {
         if (!annule) {
           setSuggestions(lieux);
           setOuvert(lieux.length > 0);
-          setErreur(lieux.length ? null : 'Aucun lieu trouvé. Essayez « ville, pays ».');
+          setErreur(lieux.length || coords ? null : 'Aucun lieu trouvé. Essayez « ville, pays ».');
         }
       } catch {
         if (!annule) setErreur('Recherche de lieu indisponible. Entrez des coordonnées.');

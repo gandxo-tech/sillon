@@ -180,7 +180,11 @@ interface ReponseEra5 {
   };
 }
 
-export async function chargerEra5(lat: number, lon: number, annees = 5): Promise<Era5Data> {
+export async function chargerEra5(
+  lat: number,
+  lon: number,
+  annees = 5,
+): Promise<Era5Data> {
   const finAnnee = new Date().getUTCFullYear() - 1;
   const debutAnnee = finAnnee - annees + 1;
   const url =
@@ -293,7 +297,7 @@ async function solIsric(lat: number, lon: number): Promise<SolBrut> {
     5,
   )}&lat=${lat.toFixed(5)}&${champs}&${profs}&value=mean`;
 
-  const data = await fetchJson<ReponseSol>(url, 60000);
+  const data = await fetchJson<ReponseSol>(url, 8000);
   const layers = data.properties?.layers;
   if (!layers?.length) throw new Error('Aucune donnée de sol');
 
@@ -516,7 +520,7 @@ export async function chargerClassificationSol(
       `https://rest.isric.org/soilgrids/v2.0/classification/query?lon=${lon.toFixed(5)}&lat=${lat.toFixed(
         5,
       )}&number_classes=1`,
-      45000,
+      8000,
     );
     return data.wrb_class_name ?? null;
   } catch {
