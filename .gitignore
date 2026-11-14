@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.logs/
+freebuff-sites-build/
+.env
+.env.*
+*.local
+.DS_Store
+/freebuff-sites-build/
