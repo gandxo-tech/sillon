@@ -162,7 +162,9 @@ export default async function handler(req, res) {
           },
         ],
         temperature: 0.4,
-        max_tokens: 400,
+        // 400 tokens coupaient le conseil en pleine phrase : on laisse de l'air
+        // et on surveille `finish_reason` pour le voir si cela recommence.
+        max_tokens: 800,
       }),
     });
   } catch (e) {
@@ -199,10 +201,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const reponse = (j && j.choices && j.choices[0] && j.choices[0].message
-    ? j.choices[0].message.content
-    : ''
-  ).trim();
+  const choixReponse = (j && j.choices && j.choices[0]) || {};
+  if (choixReponse.finish_reason === 'length') {
+    console.error('Conseil tronqué par la limite de tokens');
+  }
+
+  const reponse = (choixReponse.message ? choixReponse.message.content : '').trim();
 
   if (!reponse) {
     console.error('Réponse Groq vide');
