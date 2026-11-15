@@ -46,10 +46,14 @@ export default async function handler(req, res) {
       }),
     });
   } catch (e) {
-    // Journalisé pour être lisible dans Vercel → Deployment → Logs.
-    console.error('Groq injoignable', e && e.name, e && e.message);
+    // « TypeError » recouvre deux pannes très différentes : une valeur d'en-tête
+    // refusée (clé mal collée) et un appel réseau qui échoue. On expose la cause
+    // précise, elle ne contient aucun secret.
+    const cause = e && e.cause ? String(e.cause.code || e.cause.message || e.cause) : '';
+    const message = e && e.message ? String(e.message) : 'réseau';
+    console.error('Groq injoignable', e && e.name, message, cause);
     res.status(502).json({
-      erreur: `Service IA injoignable (${(e && (e.name || 'réseau')) || 'réseau'}).`,
+      erreur: `Service IA injoignable (${message}${cause ? ` / ${cause}` : ''}).`,
     });
     return;
   }
