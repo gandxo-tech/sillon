@@ -1,6 +1,6 @@
 🇫🇷 Version française : [README.fr.md](./README.fr.md)
 
-<img src="public/logo-soil-ai-crew.svg" alt="Logo Soil AI Crew — NASA Space Apps 2026" width="120">
+<img src="public/logo-soil-ai-crew.png" alt="Logo Soil AI Crew — NASA Space Apps 2026" width="120">
 
 # Sillon
 
@@ -416,7 +416,7 @@ Soil AI Crew — a three-person team. Member names and contact details are the c
 on this repository's GitHub page; roles were: agronomy and field constraints, data and algorithms,
 interface and plain-language writing.
 
-Team logo: `public/logo-soil-ai-crew.svg`, used as the header mark and the favicon.
+Team logo: `public/logo-soil-ai-crew.png`, used as the header mark and the favicon.
 
 Submission dossier: `SOUMISSION.md` (English) and `SOUMISSION.fr.md` (French). Oral script and prepared answers: `ORAL.md`. Audit: `AUDIT.md`.
 

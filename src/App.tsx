@@ -450,7 +450,7 @@ export default function App() {
           <div className="marque-bloc">
             <img
               className="marque"
-              src="/logo-soil-ai-crew.svg"
+              src="/logo-soil-ai-crew.png"
               alt="Logo Soil AI Crew — NASA Space Apps 2026"
             />
             <div>
