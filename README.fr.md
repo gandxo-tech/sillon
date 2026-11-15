@@ -431,6 +431,8 @@ algorithmes, interface et rédaction en langage simple.
 
 Logo de l'équipe : `public/logo-soil-ai-crew.svg`, utilisé comme marque d'en-tête et favicon.
 
+Dossier de soumission : `SOUMISSION.md` (anglais) et `SOUMISSION.fr.md` (français). Script oral et réponses préparées : `ORAL.md`. Audit : `AUDIT.md`.
+
 Crédits de données : NASA POWER (NASA Langley Research Center), NASA GIBS/EOSDIS pour l'imagerie
 MODIS, Copernicus Climate Change Service (ERA5, ERA5-Land), ISRIC SoilGrids, USGS 3DEP, Open-Meteo,
 contributeurs OpenStreetMap, Google Maps Platform.

@@ -1,0 +1,42 @@
+MIT License
+
+Copyright (c) 2026 Soil AI Crew
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-----------------------------------------------------------------------
+Third-party data and services
+-----------------------------------------------------------------------
+
+The agronomic coefficients, climate observations, soil predictions, elevation
+models, satellite imagery and map tiles used by Sillon are provided by their
+respective owners under their own terms:
+
+  - NASA POWER (Langley Research Center) — CC BY 4.0
+  - NASA GIBS / MODIS Terra — NASA open data policy
+  - ERA5 / CMIP6 via Open-Meteo — Copernicus licence
+  - SoilGrids (ISRIC) — CC BY 4.0
+  - USGS 3DEP / SRTM — public domain
+  - OpenStreetMap contributors — ODbL
+  - Google Maps Platform — Google terms of service
+  - Groq (LLM inference) — Groq terms of service
+
+Sillon is an independent submission to the NASA Space Apps Challenge 2026 and
+is not endorsed by NASA. NASA data is used, not modified, and every figure in
+the report is either computed by the engine or labelled with its source.

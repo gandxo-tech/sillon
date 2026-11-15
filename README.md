@@ -418,6 +418,8 @@ interface and plain-language writing.
 
 Team logo: `public/logo-soil-ai-crew.svg`, used as the header mark and the favicon.
 
+Submission dossier: `SOUMISSION.md` (English) and `SOUMISSION.fr.md` (French). Oral script and prepared answers: `ORAL.md`. Audit: `AUDIT.md`.
+
 Data credits: NASA POWER (NASA Langley Research Center), NASA GIBS/EOSDIS for MODIS imagery,
 Copernicus Climate Change Service (ERA5, ERA5-Land), ISRIC SoilGrids, USGS 3DEP, Open-Meteo,
 OpenStreetMap contributors, Google Maps Platform.
