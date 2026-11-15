@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sillon — démonstration</title>
+<style>
+  :root { --bg:#0b1220; --fg:#f5f7fa; --acc:#7dd3fc; --mut:#94a3b8; --ok:#86efac; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; overflow:hidden; }
+  .stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  .scene { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:6vw; opacity:0; transform:translateY(30px); transition:opacity .9s ease, transform .9s ease; pointer-events:none; }
+  .scene.active { opacity:1; transform:translateY(0); pointer-events:auto; }
+  h1 { font-size:clamp(2.4rem,6vw,5rem); font-weight:800; letter-spacing:-.02em; line-height:1.05; }
+  h2 { font-size:clamp(1.6rem,4vw,3.2rem); font-weight:700; line-height:1.1; }
+  p { font-size:clamp(1rem,2vw,1.6rem); color:var(--mut); max-width:70ch; margin-top:1.2rem; line-height:1.5; }
+  .acc { color:var(--acc); }
+  .ok { color:var(--ok); }
+  .logo { width:clamp(90px,14vw,160px); height:auto; margin-bottom:2rem; filter:drop-shadow(0 0 30px rgba(125,211,252,.35)); animation:float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:10; }
+  .dot { width:10px; height:10px; border-radius:50%; background:#334155; transition:background .4s, transform .4s; }
+  .dot.active { background:var(--acc); transform:scale(1.3); }
+  .srcs { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:1.5rem; }
+  .src { padding:6px 12px; border:1px solid #334155; border-radius:999px; font-size:.9rem; color:var(--mut); }
+  .num { font-variant-numeric:tabular-nums; font-size:clamp(3rem,9vw,7rem); font-weight:800; color:var(--acc); }
+  .kv { display:grid; grid-template-columns:1fr 1fr; gap:1rem 2.5rem; text-align:left; margin-top:1.5rem; max-width:60ch; }
+  .kv div { font-size:1.1rem; }
+  .kv b { color:var(--fg); }
+  .cta { margin-top:2rem; padding:14px 28px; border-radius:12px; background:var(--acc); color:#0b1220; font-weight:700; text-decoration:none; display:inline-block; }
+  .credit { position:fixed; top:16px; right:20px; font-size:.85rem; color:var(--mut); z-index:10; }
+</style>
+</head>
+<body>
+<div class="credit">Sillon · NASA Space Apps 2026</div>
+<div class="stage">
+  <section class="scene" data-i="0">
+    <img class="logo" src="/logo-soil-ai-crew.png" alt="Sillon">
+    <h1>Sillon</h1>
+    <p>La rotation de cultures qui s'adapte à <span class="acc">votre champ</span>, pas à un catalogue.</p>
+  </section>
+  <section class="scene" data-i="1">
+    <h2>Le problème</h2>
+    <p>Un petit exploitant cultive souvent la même céréale, année après année. Le sol s'épuise, l'eau manque, et il n'a ni agronome ni budget pour les intrants. Les outils existants parlent en jargon.</p>
+  </section>
+  <section class="scene" data-i="2">
+    <h2>Une parcelle, sept sources</h2>
+    <p>On tape un lieu (ou on clique sur la carte). Sillon charge sept sources publiques et produit un rapport en huit blocs, en français simple.</p>
+    <div class="srcs">
+      <span class="src">NASA POWER</span><span class="src">ERA5</span><span class="src">SoilGrids</span>
+      <span class="src">USGS</span><span class="src">Open-Meteo</span><span class="src">Google Maps</span><span class="src">Nominatim</span>
+    </div>
+  </section>
+  <section class="scene" data-i="3">
+    <h2>Pas de catalogue codé en dur</h2>
+    <p>Les rotations sont générées à partir des cultures saisies. 24 cultures, zone climatique déduite de la latitude — le blé n'est pas proposé au Bénin. Chaque proposition est filtrée sur l'eau, l'érosion, l'azote, le revenu et le travail.</p>
+  </section>
+  <section class="scene" data-i="4">
+    <h2>Un rejet = une action</h2>
+    <p>Pas de mur. Un stress en eau trop fort devient « cherchez de l'eau avant d'allonger la rotation ». Chaque chiffre vient d'un calcul ou d'une source. L'argent est en FCFA par hectare.</p>
+  </section>
+  <section class="scene" data-i="5">
+    <h2>Résultat</h2>
+    <div class="num">59,9 / 100</div>
+    <p>Cas témoin « historique avec maïs » : Brachiaria puis Soja puis Brachiaria. Gain d'eau et d'argent vs la rotation actuelle. Même entrée → même sortie.</p>
+  </section>
+  <section class="scene" data-i="6">
+    <h2>Limites honnêtes</h2>
+    <div class="kv">
+      <div><b>Tassement, ravageurs</b> non modélisés</div>
+      <div><b>Qualité des semis</b> non modélisée</div>
+      <div><b>Microclimat</b> non modélisé</div>
+      <div><b>Prix de marché</b> table fixe</div>
+    </div>
+    <a class="cta" href="https://soil-ai-app.vercel.app" target="_blank" rel="noopener">Essayer Sillon →</a>
+    <p style="font-size:.9rem;margin-top:1.5rem;">github.com/gandxo-tech/sillon · Licence MIT</p>
+  </section>
+</div>
+<div class="bar" id="bar"></div>
+<script>
+  const scenes = [...document.querySelectorAll('.scene')];
+  const bar = document.getElementById('bar');
+  scenes.forEach((_,i)=>{ const d=document.createElement('div'); d.className='dot'; bar.appendChild(d); });
+  const dots = [...bar.children];
+  let i = 0, timer;
+  function show(n){ scenes.forEach((s,k)=>s.classList.toggle('active',k===n)); dots.forEach((d,k)=>d.classList.toggle('active',k===n)); i=n; }
+  function next(){ show((i+1)%scenes.length); }
+  function start(){ show(0); timer=setInterval(next, 4200); }
+  start();
+  document.addEventListener('keydown', e=>{ if(e.key==='ArrowRight') next(); if(e.key==='ArrowLeft') show((i-1+scenes.length)%scenes.length); if(e.key===' '){ e.preventDefault(); clearInterval(timer); timer=setInterval(next,4200);} });
+  document.addEventListener('click', ()=>{ clearInterval(timer); next(); timer=setInterval(next,4200); });
+</script>
+</body>
+</html>
