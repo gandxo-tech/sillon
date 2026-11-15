@@ -163,9 +163,10 @@ export default async function handler(req, res) {
           },
         ],
         temperature: 0.4,
-        // 400 tokens coupaient le conseil en pleine phrase : on laisse de l'air
-        // et on surveille `finish_reason` pour le voir si cela recommence.
-        max_tokens: 800,
+        // gpt-oss est un modèle de raisonnement : les tokens de raisonnement
+        // comptent dans la limite. 800 laissaient ~10 mots de réponse.
+        max_tokens: 3000,
+        reasoning_effort: 'low',
       }),
     });
   } catch (e) {
