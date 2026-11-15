@@ -16,13 +16,15 @@ import { LIBELLES_CRITERE } from '../moteur/moteur';
 import { paragraphesTechniques } from './technique';
 import { SelecteurVariantes } from './variantes';
 import type { Donnees } from './variantes';
+import type { Explication, NiveauVerdict } from './explication';
+import { expliquer, mesuresDe, zoneDepuis } from './explication';
+
+export type { Archetype, Explication, NiveauVerdict } from './explication';
 
 const MOIS = [
   'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
 ];
-
-export type NiveauVerdict = 'oui' | 'conditionnel' | 'non';
 
 export interface LigneTableau {
   libelle: string;
@@ -79,6 +81,8 @@ export interface Rapport {
   blocs: Bloc[];
   parle: string;
   cles: string[];
+  /** Les trois temps de l'explication simple, avec leur traçabilité. */
+  explication: Explication;
 }
 
 /* ------------------------------------------------------------------ */
@@ -166,6 +170,22 @@ export function construireRapport(
   const phraseVerdict = selecteur.choisir(
     niveau === 'oui' ? 'verdictOui' : niveau === 'conditionnel' ? 'verdictConditionnel' : 'verdictNon',
     donnees,
+  );
+
+  /* --- Explication simple : constat, lien, conséquence --- */
+  const memo = new Set<string>();
+  const explic = expliquer(
+    niveau,
+    {
+      rotation: meilleure.metriques.base.def.accroche,
+      actuelle: actuelleNom,
+      ecartRevenuFcfa,
+      manqueEauMm: meilleure.metriques.base.deficit,
+      moisSemis: cal.semis,
+      moisRecolte: cal.recolte,
+    },
+    zoneDepuis(mesuresDe(profil)),
+    memo,
   );
 
   const verdict = {
@@ -307,6 +327,11 @@ export function construireRapport(
 
   /* --- Bloc 8 : technique, replié --- */
   const rejetsTechniques = sortie.rejets.map((r) => `${r.phrase} [${r.code}]`);
+  if (explic.archetypes.length) {
+    rejetsTechniques.push(
+      `Explication appuyée sur : ${explic.archetypes.join(', ')} — ${explic.faits.join(' ; ')} [${explic.source}].`,
+    );
+  }
   const sources: SourceAffichee[] = profil.sources.map((s) => ({
     nom: s.nom,
     etat: s.etat,
@@ -329,7 +354,7 @@ export function construireRapport(
       numero: 2,
       titre: 'Pourquoi',
       type: 'texte',
-      paragraphes: [],
+      paragraphes: [explic.texte],
       puces: pucesPourquoi.slice(0, 3),
     },
     {
@@ -406,6 +431,7 @@ export function construireRapport(
       : ecartRevenuFcfa < -5000
         ? `Elle rapporte ${Math.round(Math.abs(ecartRevenuFcfa) / 1000) * 1000} francs de moins, avec moins d’achats à faire.`
         : 'Le gain d’argent est faible, le gain est ailleurs.',
+    explic.texte,
     'Ceci est une aide à la décision, pas une prescription.',
   ].join(' ');
 
@@ -419,5 +445,5 @@ export function construireRapport(
     `Semis en ${cal.semis}, récolte en ${cal.recolte}.`,
   ];
 
-  return { verdict, blocs, parle, cles };
+  return { verdict, blocs, parle, cles, explication: explic };
 }

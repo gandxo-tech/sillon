@@ -10,6 +10,6 @@
     "declaration": false,
     "sourceMap": false
   },
-  "include": ["src/moteur/**/*.ts", "src/data/**/*.ts", "src/analyse/**/*.ts"],
+  "include": ["src/moteur/**/*.ts", "src/data/**/*.ts", "src/analyse/**/*.ts", "src/rapport/**/*.ts"],
   "exclude": ["src/**/*.tsx"]
 }
