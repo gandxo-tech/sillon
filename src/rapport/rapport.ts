@@ -192,10 +192,16 @@ export function construireRapport(
         ? 'conditionnel'
         : 'oui';
 
-  const phraseVerdict = selecteur.choisir(
-    niveau === 'oui' ? 'verdictOui' : niveau === 'conditionnel' ? 'verdictConditionnel' : 'verdictNon',
-    donnees,
-  );
+  /* Quand la rotation conseillée n’est pas celle de l’exploitant, la réponse
+     à sa question (« dois-je garder la mienne ? ») est non : on le dit
+     clairement, puis on nomme la proposition et sa raison. */
+  const recommandeAutre = !estLaVotre && !aucuneOption;
+  const phraseVerdict = recommandeAutre
+    ? `Non, je ne vous conseille pas ${actuelleNom} cette année. Choisissez plutôt ${meilleure.nom} (${meilleure.metriques.base.def.accroche}) : ${meilleure.pourquoi}`
+    : selecteur.choisir(
+        niveau === 'oui' ? 'verdictOui' : niveau === 'conditionnel' ? 'verdictConditionnel' : 'verdictNon',
+        donnees,
+      );
 
   /* --- Explication simple : constat, lien, conséquence --- */
   const memo = new Set<string>();
@@ -215,9 +221,9 @@ export function construireRapport(
 
   const verdict = {
     niveau,
-    badge: niveau === 'oui' ? 'Oui' : niveau === 'conditionnel' ? 'Oui, sous conditions' : 'Non',
+    badge: recommandeAutre ? 'Non' : niveau === 'oui' ? 'Oui' : niveau === 'conditionnel' ? 'Oui, sous conditions' : 'Non',
     // Le badge est un rond de 46 px : au-delà de quatre lettres, il déborde.
-    badgeCourt: niveau === 'non' ? 'Non' : 'Oui',
+    badgeCourt: recommandeAutre || niveau === 'non' ? 'Non' : 'Oui',
     phrase: aucuneOption
       ? `Rien ne passe cette année sur ce champ. Il faut d’abord régler ${phraseBlocage}.`
       : phraseVerdict,
