@@ -85,12 +85,12 @@ export default function RotationTable({
 
         <div className="ligne">
           <div className="etiquette">
-            <strong>Marge indicative</strong>
-            <span>€/ha, azote déduit</span>
+            <strong>Argent attendu</strong>
+            <span>FCFA/ha, engrais déduit</span>
           </div>
           {resultats.map((r) => (
             <Cellule key={r.def.id} meilleur={r.def.id === meilleurId}>
-              <span className="valeur">{fr(r.marge)} €/ha</span>
+              <span className="valeur">{fr(r.marge)} FCFA/ha</span>
               <span className="precision">
                 {fr(r.margeBasse)} à {fr(r.margeHaute)}
               </span>
@@ -100,7 +100,7 @@ export default function RotationTable({
 
         <div className="ligne">
           <div className="etiquette">
-            <strong>Déficit hydrique</strong>
+            <strong>Eau manquante</strong>
             <span>mm sur la saison</span>
           </div>
           {resultats.map((r) => (
@@ -113,7 +113,7 @@ export default function RotationTable({
 
         <div className="ligne">
           <div className="etiquette">
-            <strong>Érosion</strong>
+            <strong>Terre perdue</strong>
             <span>t/ha/an, seuil 5</span>
           </div>
           {resultats.map((r) => (
@@ -147,12 +147,12 @@ export default function RotationTable({
 
         <div className="ligne">
           <div className="etiquette">
-            <strong>Azote à acheter</strong>
-            <span>kg N/ha</span>
+            <strong>Engrais à acheter</strong>
+            <span>kg par hectare</span>
           </div>
           {resultats.map((r) => (
             <Cellule key={r.def.id} meilleur={r.def.id === meilleurId}>
-              <span className="valeur">{fr(r.azote)} kg N/ha</span>
+              <span className="valeur">{fr(r.azote)} kg/ha</span>
               <span className="precision">
                 {r.diversite} cultures · retour {r.def.cycle.length} ans
               </span>
@@ -162,8 +162,8 @@ export default function RotationTable({
       </div>
 
       <p className="comparateur-note">
-        Les marges sont des ordres de grandeur européens (maïs, soja, blé, sorgho, luzerne) : elles
-        servent à comparer les stratégies entre elles, pas à promettre un revenu.
+        Les montants sont des ordres de grandeur convertis en FCFA par hectare : ils comparent des
+        stratégies entre elles, ils ne promettent pas un revenu.
       </p>
     </div>
   );

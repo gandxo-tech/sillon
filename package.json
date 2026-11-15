@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "tsc -p tsconfig.test.json && printf '{\"type\":\"commonjs\"}' > .cache/tests/package.json && node .cache/tests/moteur/__tests__/moteur.test.js",
+    "tableau": "tsc -p tsconfig.test.json && printf '{\"type\":\"commonjs\"}' > .cache/tests/package.json && node .cache/tests/moteur/__tests__/tableau.js"
   },
   "dependencies": {
     "react": "^18.3.1",

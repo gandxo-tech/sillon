@@ -19,17 +19,23 @@ import {
 } from './api/sources';
 import { PrevisionsBloc, ProjectionBloc } from './components/Horizons';
 import SelecteurCulture from './components/SelecteurCulture';
-import Verdict from './components/Verdict';
 import BoutonEcoute from './components/BoutonEcoute';
 import { construireProfil, type Profil, type SourceStatut } from './analyse/features';
 import {
   CONDITIONS,
   construireContexte,
-  construireScenarios,
   resoudreCulture,
   type Condition,
+  type Culture,
 } from './analyse/rotations';
-import { construireRapport } from './analyse/report';
+import {
+  CAPITAL_FCFA,
+  PRIORITES_DEFAUT,
+  chercherRotations,
+  type NiveauCapital,
+  type Priorites,
+} from './moteur/moteur';
+import { construireRapport, type Bloc, type Rapport } from './rapport/rapport';
 
 type Etat =
   | { statut: 'vide' }
@@ -40,6 +46,126 @@ type Etat =
 const fr = (v: number, d = 0) =>
   Number.isFinite(v) ? v.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
 
+const CURSEURS: { cle: keyof Priorites; label: string; aide: string }[] = [
+  { cle: 'revenu', label: 'Gagner de l’argent', aide: 'Le prix de vente compte pour vous' },
+  { cle: 'securiteAlimentaire', label: 'Nourrir la maison', aide: 'Le grenier avant le marché' },
+  { cle: 'sobrieteEau', label: 'Économiser l’eau', aide: 'La sécheresse vous inquiète' },
+  { cle: 'autonomieIntrants', label: 'Acheter moins d’engrais', aide: 'Réduire les achats d’intrants' },
+  { cle: 'preservationSol', label: 'Protéger la terre', aide: 'Garder le sol en place' },
+  { cle: 'disponibiliteMainOeuvre', label: 'Main-d’œuvre disponible', aide: '0 = personne, 100 = bras toute la saison' },
+];
+
+function BlocVue({ bloc, verdict }: { bloc: Bloc; verdict: Rapport['verdict'] }) {
+  if (bloc.type === 'verdict') {
+    return (
+      <section className={`section conclusion-simple ${verdict.niveau === 'non' ? 'conclusion-non' : 'conclusion-oui'}`}>
+        <span className="conclusion-badge">{verdict.badgeCourt}</span>
+        <div>
+          <p>{verdict.phrase}</p>
+          <p className="reco-accroche">{verdict.rotation}</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="section">
+      <div className="section-tete">
+        {bloc.numero > 0 && <span className="section-num">{String(bloc.numero).padStart(2, '0')}</span>}
+        <h3>{bloc.titre}</h3>
+      </div>
+
+      {bloc.paragraphes.map((p) => (
+        <p key={p}>{p}</p>
+      ))}
+
+      {bloc.type === 'tableau' && bloc.tableau && (
+        <div className="table-rotations">
+          <div className="ligne ligne-tete">
+            <div className="etiquette">
+              <strong>Ce qui change</strong>
+              <span>chez vous</span>
+            </div>
+            {bloc.tableau.entetes.map((e, i) => (
+              <div className={`cellule${i === 1 ? ' cellule-meilleure' : ''}`} key={`${e.nom}-${i}`}>
+                <span className="role">{i === 0 ? 'Aujourd’hui' : `Option ${i}`}</span>
+                <h4>{e.nom}</h4>
+                <p className="cycle">{e.suite}</p>
+                <span className="score">{fr(e.score, 1)}</span>
+              </div>
+            ))}
+          </div>
+          {bloc.tableau.lignes.map((l) => (
+            <div className="ligne" key={l.libelle}>
+              <div className="etiquette">
+                <strong>{l.libelle}</strong>
+                <span>{l.lecture}</span>
+              </div>
+              {l.valeurs.map((v, i) => (
+                <div className={`cellule${i === 1 ? ' cellule-meilleure' : ''}`} key={`${l.libelle}-${i}`}>
+                  <span className="valeur">{v}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {bloc.type === 'options' && bloc.options && (
+        <div className="alternatives">
+          <div className="alternatives-grille">
+            {bloc.options.map((o) => (
+              <article className={`alternative${o.meilleure ? ' cellule-meilleure' : ''}`} key={o.nom}>
+                <div className="alternative-tete">
+                  <strong>{o.nom}</strong>
+                  <span>{fr(o.score, 1)} / 100</span>
+                </div>
+                <p className="cycle">{o.suite}</p>
+                <p>{o.gagne}</p>
+                <p>{o.coute}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(bloc.puces?.length || bloc.rejets?.length) ? (
+        <div className="developpe">
+          <ul>
+            {(bloc.rejets ?? bloc.puces ?? []).map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {bloc.type === 'technique' && (
+        <details className="developpe">
+          <summary>Ouvrir la partie technique</summary>
+          {bloc.paragraphes.map((p) => (
+            <p key={p}>{p}</p>
+          ))}
+          {bloc.sources && (
+            <div className="sources-table">
+              {bloc.sources.map((s) => (
+                <div className={`source ${s.etat === 'ok' ? 'source-ok' : 'source-echec'}`} key={s.nom}>
+                  <div className="source-tete">
+                    <strong>{s.nom}</strong>
+                    <span className={`etat etat-${s.etat}`}>{s.etat === 'ok' ? 'utilisée' : 'indisponible'}</span>
+                  </div>
+                  <p className="source-variable">{s.variable}</p>
+                  <p className="source-resolution">{s.resolution}</p>
+                  <p className="source-detail">{s.detail}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </details>
+      )}
+    </section>
+  );
+}
+
 export default function App() {
   const [etat, setEtat] = useState<Etat>({ statut: 'vide' });
   const [condition, setCondition] = useState<Condition>(CONDITIONS[0]);
@@ -47,10 +173,14 @@ export default function App() {
   const [projection, setProjection] = useState<Projection | null>(null);
   const [cultureActuelle, setCultureActuelle] = useState('');
   const [cultureSuivante, setCultureSuivante] = useState('');
+  const [cycleLibre, setCycleLibre] = useState('');
   const [irrigation, setIrrigation] = useState(0);
   const [pluiePctCustom, setPluiePctCustom] = useState(0);
-  const [cycleLibre, setCycleLibre] = useState('');
   const [tempDeltaCustom, setTempDeltaCustom] = useState(0);
+  const [priorites, setPriorites] = useState<Priorites>(PRIORITES_DEFAUT);
+  const [cheptel, setCheptel] = useState(false);
+  const [capital, setCapital] = useState<NiveauCapital>('faible');
+  const [historique, setHistorique] = useState('');
   const [conseil, setConseil] = useState<string | null>(null);
   const [conseilCharge, setConseilCharge] = useState(false);
   const [conseilErreur, setConseilErreur] = useState<string | null>(null);
@@ -85,10 +215,12 @@ export default function App() {
         const suiv = get(['suivante', 'next', 'culture_suivante', 'culture2']);
         const irr = get(['irrigation', 'irrigation_mm', 'eau']);
         const cycle = get(['cycle', 'rotation', 'cycle_complet', 'succession']);
+        const hist = get(['historique', 'history', 'cultures_precedentes']);
         if (act) setCultureActuelle(act);
         if (suiv) setCultureSuivante(suiv);
         if (irr) setIrrigation(Number(irr) || 0);
         if (cycle) setCycleLibre(cycle);
+        if (hist) setHistorique(hist);
         if (Number.isFinite(lat) && Number.isFinite(lon)) {
           analyser(lat, lon, nom || `${lat.toFixed(3)}, ${lon.toFixed(3)}`);
         }
@@ -193,7 +325,7 @@ export default function App() {
       liste.push({
         cle: 'previsions',
         nom: 'Open-Meteo — prévision',
-        variable: 'Pluie, gel, ET0 à 14 jours',
+        variable: 'Pluie, gel, demande de l’air à 14 jours',
         resolution: 'maillage 1–11 km · horaire',
         etat: 'ok',
         detail: 'modèle météorologique, fenêtre de 14 jours',
@@ -212,45 +344,60 @@ export default function App() {
     return liste;
   }, [previsions, projection]);
 
+  /** La rotation actuelle part des cultures réellement saisies. */
+  const saisie = useMemo<{ cultures: Culture[]; approx: boolean; nom: string }>(() => {
+    const morceaux = cycleLibre.trim()
+      ? cycleLibre.split(/[,;›]+/).map((x) => x.trim()).filter(Boolean)
+      : [cultureActuelle, cultureSuivante].filter((x) => x.trim().length > 0);
+    const textes = morceaux.length ? morceaux : ['maïs'];
+    const resolus = textes.map((t) => resoudreCulture(t));
+    return {
+      cultures: resolus.map((r) => r.culture),
+      approx: resolus.some((r) => r.approx),
+      nom: resolus.map((r) => r.culture.court).join(' puis '),
+    };
+  }, [cultureActuelle, cultureSuivante, cycleLibre]);
+
   const contexte = useMemo(
     () => (etat.statut === 'pret' ? construireContexte(etat.profil, irrigation) : null),
     [etat, irrigation],
   );
-  const rotations = useMemo(
+
+  const sortie = useMemo(
     () =>
-      contexte
-        ? construireScenarios(contexte, condition, {
-            actuelle: cultureActuelle,
-            suivante: cultureSuivante,
-            cycle: cycleLibre,
+      etat.statut === 'pret' && contexte
+        ? chercherRotations({
+            ctx: contexte,
+            condition,
+            priorites,
+            cheptel,
+            capital,
+            historique: historique.split(/[,;›]+/).map((x) => x.trim()).filter(Boolean).slice(-3),
+            actuelle: saisie.cultures,
+            approx: saisie.approx,
+            lat: etat.profil.lieu.lat,
+            lon: etat.profil.lieu.lon,
           })
-        : [],
-    [contexte, condition, cultureActuelle, cultureSuivante],
+        : null,
+    [etat, contexte, condition, priorites, cheptel, capital, historique, saisie],
   );
+
   const rapport = useMemo(
-    () => (etat.statut === 'pret' ? construireRapport(etat.profil, rotations, condition) : null),
-    [etat, rotations, condition],
+    () => (etat.statut === 'pret' && sortie ? construireRapport(etat.profil, sortie, saisie.nom) : null),
+    [etat, sortie, saisie],
   );
 
-  const meilleurId = useMemo(() => {
-    if (!rotations.length) return '';
-    const viables = [...rotations].filter((r) => r.viable).sort((a, b) => b.scoreGlobal - a.scoreGlobal);
-    return (viables[0] ?? [...rotations].sort((a, b) => b.scoreGlobal - a.scoreGlobal)[0]).def.id;
-  }, [rotations]);
+  const resultats = useMemo(
+    () => (sortie ? [sortie.reference.resultat, ...sortie.classement.slice(0, 3).map((c) => c.resultat)] : []),
+    [sortie],
+  );
+  const meilleurId = sortie?.meilleure.id ?? '';
 
-  const section = (titre: string) => rapport?.sections.find((s) => s.titre === titre);
-  const meilleur = rotations.find((r) => r.def.id === meilleurId) ?? null;
-
-  const horsBase = useMemo(() => {
-    const trouve = [resoudreCulture(cultureActuelle), resoudreCulture(cultureSuivante)].find((x) => x.approx);
-    return trouve ? trouve.culture.court : null;
-  }, [cultureActuelle, cultureSuivante]);
-
-  const noteEstimation = horsBase ? (
+  const noteEstimation = saisie.approx ? (
     <p className="culture-note">
-      « {horsBase} » n’est pas dans la base : faute de coefficients mesurés, Sillon applique une
-      culture générique de 120 jours à besoin en eau moyen. Le score reste comparable, mais c’est une
-      estimation à confirmer par vos références locales.
+      Une culture saisie n’est pas dans la base : faute de coefficients mesurés, Sillon applique une
+      culture générique de 120 jours. Le score reste comparable, mais c’est une estimation à
+      confirmer par vos références locales.
     </p>
   ) : null;
 
@@ -259,11 +406,9 @@ export default function App() {
     setConseilCharge(true);
     setConseilErreur(null);
     setConseil(null);
-    const contexte = [
+    const contexteTexte = [
       `Lieu : ${etat.profil.lieu.nom} (${etat.profil.lieu.lat.toFixed(3)}, ${etat.profil.lieu.lon.toFixed(3)}).`,
       rapport.cles.join(' '),
-      rapport.conclusion ? `Verdict : ${rapport.conclusion.phrase}` : '',
-      `Meilleure rotation : ${rapport.recommandation.nom} (${rapport.recommandation.score}/100).`,
       `Culture en place : ${cultureActuelle || 'non précisée'}.`,
       `Culture suivante : ${cultureSuivante || 'non précisée'}.`,
       `Irrigation disponible : ${irrigation} mm.`,
@@ -274,7 +419,7 @@ export default function App() {
       const r = await fetch('/api/ia', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contexte }),
+        body: JSON.stringify({ contexte: contexteTexte }),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j?.erreur || 'Erreur');
@@ -307,7 +452,7 @@ export default function App() {
             </div>
           </div>
           <p className="top-note">
-            Observation de la Terre en direct · NASA POWER (pluie, température, humidité GWETTOP) · ERA5 · SoilGrids · SRTM · GIBS
+            Observation de la Terre en direct · NASA POWER (pluie, température, humidité) · ERA5 · SoilGrids · SRTM · GIBS
           </p>
         </div>
       </header>
@@ -320,9 +465,9 @@ export default function App() {
             Un rapport qui tient debout.
           </h1>
           <p className="hero-sous">
-            Donnez un lieu : Sillon va chercher la pluie réelle des dix dernières années, la demande
-            évaporative, la texture du sol, la pente, puis compare quatre rotations et vous explique
-            pourquoi l’une ressort.
+            Donnez un lieu : Sillon va chercher la pluie réelle des dix dernières années, la soif de
+            l’air, la terre et la pente. Puis il cherche la rotation qui vous convient et vous explique
+            pourquoi.
           </p>
 
           <SearchBar onChoix={analyser} chargement={etat.statut === 'chargement'} />
@@ -335,18 +480,34 @@ export default function App() {
             }
           />
 
+          <label className="cycle-libre">
+            <span>Toutes vos cultures, autant que vous voulez (séparées par des virgules)</span>
+            <input
+              type="text"
+              value={cycleLibre}
+              onChange={(e) => setCycleLibre(e.target.value)}
+              placeholder="maïs, niébé, fonio, sésame, patate douce…"
+              autoComplete="off"
+            />
+          </label>
+          <p className="culture-aide">
+            Écrivez ce que vous voulez, même une culture absente de la base : Sillon l’accepte,
+            l’utilise dans sa recherche et signale l’estimation. Si ce champ est rempli, il remplace
+            les deux cultures ci-dessus.
+          </p>
+
           {noteEstimation}
 
           <div className="import-csv">
             <button type="button" className="lien" onClick={() => fichierRef.current?.click()}>
               Importer un fichier CSV
             </button>
-            <span> (CSV ; PDF non pris en charge pour l’instant — lieu, latitude, longitude, culture en place, culture suivante…)</span>
+            <span> (CSV ; lieu, latitude, longitude, culture en place, culture suivante, historique…)</span>
             <input ref={fichierRef} type="file" accept=".csv,.txt" onChange={importerFichier} hidden />
           </div>
 
           <p className="hero-note">
-            Un lieu, deux cultures, aucun compte. Huit sources publiques sont interrogées à chaque
+            Un lieu, vos cultures, aucun compte. Les sources publiques sont interrogées à chaque
             analyse ; celles qui échouent sont affichées en bas du rapport. Le résultat se lit à
             l’image, et peut s’écouter.
           </p>
@@ -358,8 +519,9 @@ export default function App() {
             <div>
               <strong>Analyse de {etat.nom}</strong>
               <p>
-                NASA POWER (10 ans de pluie et de températures), ERA5 (ET0 et gel), SoilGrids
-                (texture, carbone, pH), SRTM (pente) et l’imagerie MODIS. Comptez quelques secondes.
+                NASA POWER (10 ans de pluie et de températures), ERA5 (demande de l’air et gel),
+                SoilGrids (texture, carbone, pH), SRTM (pente) et l’imagerie MODIS. Comptez quelques
+                secondes.
               </p>
             </div>
           </div>
@@ -375,7 +537,7 @@ export default function App() {
           </div>
         )}
 
-        {etat.statut === 'pret' && rapport && (
+        {etat.statut === 'pret' && rapport && sortie && (
           <div className="rapport">
             <section className="rapport-tete">
               <div>
@@ -401,96 +563,54 @@ export default function App() {
 
             <section className="section">
               <div className="section-tete">
-                <span className="section-num">01</span>
-                <h3>Synthèse</h3>
+                <h3>Vos priorités</h3>
               </div>
-              <div className="synthese">
-                <ul className="cles">
-                  {rapport.cles.map((c) => (
-                    <li key={c}>{c}</li>
-                  ))}
-                </ul>
-                {rapport.synthese.map((par) => (
-                  <p key={par.slice(0, 40)}>{par}</p>
-                ))}
-              </div>
-            </section>
-
-            <section className="section">
-              <div className="section-tete">
-                <span className="section-num">02</span>
-                <h3>Ce que la localisation révèle</h3>
-              </div>
-              <FeatureCards profil={etat.profil} />
-
-              {section('Ce que la localisation révèle') && (
-                <div className="developpe">
-                  {section('Ce que la localisation révèle')!.paragraphes.map((par) => (
-                    <p key={par.slice(0, 40)}>{par}</p>
-                  ))}
-                  <ul>
-                    {section('Ce que la localisation révèle')!.puces?.map((p) => (
-                      <li key={p}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </section>
-
-            <section className="section">
-              <div className="section-tete">
-                <span className="section-num">03</span>
-                <h3>Le rythme de l’eau</h3>
-              </div>
-              <ClimateChart
-                mois={etat.profil.graphique.mois}
-                pluie={etat.profil.graphique.pluie}
-                et0={etat.profil.graphique.et0}
-                humidite={etat.profil.graphique.humidite}
-                anneeHumidite={etat.profil.graphique.anneeHumidite}
-              />
-              <div className="horizons">
-                {previsions && <PrevisionsBloc data={previsions} />}
-                {projection && <ProjectionBloc data={projection} />}
-              </div>
-              {section('Ce que cela change pour la rotation') && (
-                <div className="developpe">
-                  {section('Ce que cela change pour la rotation')!.paragraphes.map((par) => (
-                    <p key={par.slice(0, 40)}>{par}</p>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="section">
-              <div className="section-tete">
-                <span className="section-num">04</span>
-                <h3>Quatre rotations, un même lieu</h3>
-              </div>
-              <SelecteurCulture
-                compact
-                actuelle={cultureActuelle}
-                suivante={cultureSuivante}
-                onChange={(champ, valeur) =>
-                  champ === 'actuelle' ? setCultureActuelle(valeur) : setCultureSuivante(valeur)
-                }
-              />
-
-              {noteEstimation}
-
-              <label className="cycle-libre">
-                <span>Cycle complet (optionnel, cultures séparées par des virgules)</span>
-                <input
-                  type="text"
-                  value={cycleLibre}
-                  onChange={(e) => setCycleLibre(e.target.value)}
-                  placeholder="maïs, soja, blé, couvert"
-                  autoComplete="off"
-                />
-              </label>
-
               <div className="contraintes">
-                <h4>Contraintes locales</h4>
+                {CURSEURS.map((c) => (
+                  <label key={c.cle}>
+                    {c.label} : {priorites[c.cle]}
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={priorites[c.cle]}
+                      onChange={(e) =>
+                        setPriorites((p) => ({ ...p, [c.cle]: Number(e.target.value) }))
+                      }
+                    />
+                    <span className="precision">{c.aide}</span>
+                  </label>
+                ))}
+                <label>
+                  <span>
+                    <input
+                      type="checkbox"
+                      checked={cheptel}
+                      onChange={(e) => setCheptel(e.target.checked)}
+                    />{' '}
+                    J’ai des animaux (cheptel)
+                  </span>
+                </label>
+                <label>
+                  Budget d’intrants par hectare
+                  <select value={capital} onChange={(e) => setCapital(e.target.value as NiveauCapital)}>
+                    {(Object.keys(CAPITAL_FCFA) as NiveauCapital[]).map((niveau) => (
+                      <option key={niveau} value={niveau}>
+                        {niveau} — {fr(CAPITAL_FCFA[niveau])} FCFA
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Les trois dernières cultures (de la plus ancienne à la plus récente)
+                  <input
+                    type="text"
+                    value={historique}
+                    onChange={(e) => setHistorique(e.target.value)}
+                    placeholder="sorgho, niébé, maïs"
+                    autoComplete="off"
+                  />
+                </label>
                 <label>
                   Irrigation disponible (mm sur la saison)
                   <input
@@ -501,75 +621,28 @@ export default function App() {
                     onChange={(e) => setIrrigation(Number(e.target.value) || 0)}
                   />
                 </label>
-                <label>
-                  Pluie de saison : {pluiePctCustom >= 0 ? '+' : ''}{pluiePctCustom} %
-                  <input
-                    type="range"
-                    min={-40}
-                    max={40}
-                    value={pluiePctCustom}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setPluiePctCustom(v);
-                      setCondition({
-                        id: 'custom',
-                        nom: `Personnalisé (${v >= 0 ? '+' : ''}${v} % pluie, ${tempDeltaCustom >= 0 ? '+' : ''}${tempDeltaCustom} °C)`,
-                        pluiePct: v,
-                        tempDelta: tempDeltaCustom,
-                      });
-                    }}
-                  />
-                </label>
-                <label>
-                  Température : {tempDeltaCustom >= 0 ? '+' : ''}{tempDeltaCustom} °C
-                  <input
-                    type="range"
-                    min={-2}
-                    max={4}
-                    step={0.5}
-                    value={tempDeltaCustom}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setTempDeltaCustom(v);
-                      setCondition({
-                        id: 'custom',
-                        nom: `Personnalisé (${pluiePctCustom >= 0 ? '+' : ''}${pluiePctCustom} % pluie, ${v >= 0 ? '+' : ''}${v} °C)`,
-                        pluiePct: pluiePctCustom,
-                        tempDelta: v,
-                      });
-                    }}
-                  />
-                </label>
               </div>
+              <p className="precision">
+                {sortie.nombreCandidats} successions construites à partir de vos cultures et
+                examinées une par une, {sortie.rejets.length} écartées avant classement.
+              </p>
+            </section>
 
+            {rapport.blocs.map((bloc) => (
+              <BlocVue bloc={bloc} verdict={rapport.verdict} key={`${bloc.numero}-${bloc.titre}`} />
+            ))}
+
+            <section className="section">
+              <div className="section-tete">
+                <h3>Comparateur détaillé</h3>
+              </div>
               <RotationTable
-                resultats={rotations}
+                resultats={resultats}
                 condition={condition}
                 conditions={conditions}
                 onCondition={setCondition}
                 meilleurId={meilleurId}
               />
-              {section('Comment lire la comparaison') && (
-                <div className="developpe">
-                  {section('Comment lire la comparaison')!.paragraphes.map((par) => (
-                    <p key={par.slice(0, 40)}>{par}</p>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="section">
-              <div className="section-tete">
-                <span className="section-num">05</span>
-                <h3>La recommandation, et ses angles morts</h3>
-              </div>
-
-              {rapport.conclusion && (
-                <div className={`conclusion-simple conclusion-${rapport.conclusion.verdict}`}>
-                  <span className="conclusion-badge">{rapport.conclusion.verdict === 'oui' ? 'Oui' : 'Non'}</span>
-                  <p>{rapport.conclusion.phrase}</p>
-                </div>
-              )}
 
               <div className="conseil-ia">
                 <button
@@ -584,91 +657,26 @@ export default function App() {
                 {conseil && <p className="conseil-reponse">{conseil}</p>}
               </div>
 
-              {meilleur && (
-                <Verdict retenu={meilleur} reference={rotations[0]} condition={condition.nom} />
-              )}
-
-              <div className="reco">
-                <div className="reco-corps">
-                  <p className="sur-titre reco-sur-titre">
-                    Meilleur compromis dans la condition « {condition.nom} »
+              <details className="developpe">
+                <summary>Ce que la parcelle montre</summary>
+                <FeatureCards profil={etat.profil} />
+                <ClimateChart
+                  mois={etat.profil.graphique.mois}
+                  pluie={etat.profil.graphique.pluie}
+                  et0={etat.profil.graphique.et0}
+                  humidite={etat.profil.graphique.humidite}
+                  anneeHumidite={etat.profil.graphique.anneeHumidite}
+                />
+                <div className="horizons">
+                  {previsions && <PrevisionsBloc data={previsions} />}
+                  {projection && <ProjectionBloc data={projection} />}
+                </div>
+                {sourcesHorizon.map((s) => (
+                  <p className="precision" key={s.cle}>
+                    {s.nom} · {s.variable} · {s.detail}
                   </p>
-                  <h4>{rapport.recommandation.nom}</h4>
-                  <p className="reco-accroche">{rapport.recommandation.accroche}</p>
-                  <ul className="raisons">
-                    {rapport.recommandation.raisons.map((r) => (
-                      <li key={r}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="reco-score">
-                  <p className="reco-nombre">
-                    {fr(rapport.recommandation.score)}
-                    <span>/ 100</span>
-                  </p>
-                  <p className="reco-legende">
-                    Pondération : eau 28 %, sol 26 %, revenu 28 %, résilience 18 %.
-                  </p>
-                </div>
-              </div>
-
-              <div className="alertes">
-                <h4>À vérifier avant de décider</h4>
-                <ul>
-                  {rapport.recommandation.alertes.map((a) => (
-                    <li key={a}>{a}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="alternatives">
-                <h4 className="alternatives-titre">Les autres pistes</h4>
-                <div className="alternatives-grille">
-                  {rapport.recommandation.alternatives.map((a) => (
-                    <article key={a.nom} className="alternative">
-                      <div className="alternative-tete">
-                        <strong>{a.nom}</strong>
-                        <span>{fr(a.score)} / 100</span>
-                      </div>
-                      <p>{a.pourquoi}</p>
-                    </article>
-                  ))}
-                </div>
-              </div>
-
-              {section('Ce que l’outil ne peut pas voir') && (
-                <div className="developpe">
-                  {section('Ce que l’outil ne peut pas voir')!.paragraphes.map((par) => (
-                    <p key={par.slice(0, 40)}>{par}</p>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="section">
-              <div className="section-tete">
-                <span className="section-num">06</span>
-                <h3>Sources, résolutions, échecs</h3>
-              </div>
-              <div className="sources-table">
-                {[...etat.profil.sources, ...sourcesHorizon].map((s) => (
-                  <div className={`source ${s.etat === 'ok' ? 'source-ok' : 'source-echec'}`} key={s.cle}>
-                    <div className="source-tete">
-                      <strong>{s.nom}</strong>
-                      <span className={`etat etat-${s.etat}`}>{s.etat === 'ok' ? 'utilisée' : 'indisponible'}</span>
-                    </div>
-                    <p className="source-variable">{s.variable}</p>
-                    <p className="source-resolution">{s.resolution}</p>
-                    <p className="source-detail">{s.detail}</p>
-                  </div>
                 ))}
-              </div>
-              <p className="methode-note">
-                Méthode : pluie et températures NASA POWER (2016–2025) ; ET0 ERA5 (2021–2025, Penman-Monteith
-                FAO-56, repli Hargreaves) ; sol SoilGrids 0–60 cm ; pente calculée sur cinq points
-                espacés d’un kilomètre ; érosion RUSLE avec R dérivé de la pluie annuelle, K issu de
-                la texture, LS de la pente mesurée et C de la couverture du cycle ;                 azote et matière organique issus de coefficients agronomiques standards. ET0 = demande en eau de l’air ; K = sensibilité du sol à l’érosion ; RUSLE = estimation de l’érosion à partir de la pluie, du sol, de la pente et du couvert.
-              </p>
+              </details>
             </section>
           </div>
         )}
