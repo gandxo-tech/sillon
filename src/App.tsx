@@ -697,6 +697,58 @@ export default function App() {
             </section>
           </div>
         )}
+
+        <section className="section faq" aria-labelledby="faq-titre">
+          <div className="section-tete">
+            <h2 id="faq-titre">Questions fréquentes</h2>
+          </div>
+          <details>
+            <summary>Sillon remplace-t-il un agronome ?</summary>
+            <p>
+              Non. Sillon donne un point de départ chiffré et la trace de son raisonnement. La
+              décision finale reste à l’exploitant et à son agronome, qui connaissent le terrain.
+            </p>
+          </details>
+          <details>
+            <summary>D’où viennent les prix en FCFA ?</summary>
+            <p>
+              D’une table fixe dans le code (marges brutes par culture). Ce n’est pas le marché de
+              la semaine ; calibrer cette table avec les acheteurs de la coopérative est la première
+              étape d’un déploiement.
+          </p>
+          </details>
+          <details>
+            <summary>Que se passe-t-il si une source de données tombe ?</summary>
+            <p>
+              L’application se dégrade et signale l’échec. Chaque source rend son propre état dans
+              le rapport (bloc 8). Le moteur tourne sur les données disponibles et indique « données
+              partielles » quand une source a échoué.
+          </p>
+          </details>
+          <details>
+            <summary>Le sol est vu tous les 250 m : est-ce assez précis ?</summary>
+            <p>
+              Non au niveau du champ. SoilGrids est une prédiction globale. Le rapport le dit
+              clairement et recommande une analyse de terre pour trancher.
+          </p>
+          </details>
+          <details>
+            <summary>La langue s’adapte-t-elle à l’utilisateur ?</summary>
+            <p>
+              Oui : les sept premiers blocs du rapport évitent le jargon, et les termes techniques
+              sont réservés au bloc 8 replié. Le conseil IA répond en français simple. Une version
+              vocale en mooré et en dioula est prévue (feuille de route).
+          </p>
+          </details>
+          <details>
+            <summary>Comment sont protégées mes données ?</summary>
+            <p>
+              Aucun compte, aucune donnée personnelle envoyée à un serveur Sillon. Les calculs
+              tournent dans votre navigateur ; seules les requêtes vers les sources publiques
+              (NASA, Open-Meteo, etc.) quittent votre machine.
+          </p>
+          </details>
+        </section>
       </main>
 
       <footer className="footer">

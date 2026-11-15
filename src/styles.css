@@ -1966,3 +1966,37 @@ button {
   line-height: 1.5;
   white-space: pre-wrap;
 }
+
+/* ------------------------------- FAQ ------------------------------- */
+.faq {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--trait);
+  max-width: 80ch;
+}
+
+.faq details {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--trait);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.faq summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--encre);
+  list-style: none;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq details p {
+  margin-top: 8px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--encre-doux);
+}
