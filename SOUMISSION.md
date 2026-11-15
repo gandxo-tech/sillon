@@ -85,7 +85,7 @@ Listed in the report itself (block 6) and in `README.md` §10:
 - RUSLE K is tabulated, not fitted to the local soil.
 - Seven public APIs, browser-side CORS: any can fail or change a field.
 - The Google Maps key is client-side (restricted by referer and quota).
-- The ERA5 label says ≈ 9 km; the native grid is 0.25° (≈ 25–30 km).
+- The provider advertises ERA5 at ≈ 9 km; the native grid is 0.25° (≈ 25–30 km), which is what the in-app label now states.
 - Input costs, not profits: no credit, no family labour valuation, no land tenure.
 - No field validation: the output has not been compared to measured yields.
 

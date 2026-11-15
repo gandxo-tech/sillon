@@ -91,7 +91,7 @@ milieu. Chaque source rend son propre état dans le rapport (bloc 8).
 - Le K de RUSLE est tabulé, pas ajusté au sol local.
 - Sept API publiques, CORS côté navigateur : chacune peut tomber ou changer un champ.
 - La clé Google Maps est côté client (restreinte par référent et quota).
-- L'étiquette ERA5 annonce ≈ 9 km ; la grille native est à 0,25° (≈ 25–30 km).
+- Le fournisseur annonce ERA5 à ≈ 9 km ; la grille native est à 0,25° (≈ 25–30 km), ce que l'étiquette dans l'app affiche désormais.
 - Coûts d'intrants, pas bénéfices : pas de crédit, pas de valorisation du travail familial, pas de foncier.
 - Aucune validation au champ : la sortie n'a pas été comparée à des rendements mesurés.
 
