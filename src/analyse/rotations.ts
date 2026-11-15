@@ -284,6 +284,36 @@ const SYNONYMES: Record<string, string> = {
   'crotalaria': 'crotalaire',
 };
 
+/** Vocabulaire de cultures reconnues : le site ne traite que ce qui est
+ *  une culture. Tout ce qui n'y figure pas est refusé, pour ne pas analyser
+ *  du « n'importe quoi » (pipi, mama, azerty…). */
+export const VOCABULAIRE_CULTURES: ReadonlySet<string> = new Set([
+  // Céréales
+  'riz', 'mil', 'petit mil', 'sorgho', 'mais', 'ble', 'orge', 'avoine', 'fonio',
+  'teff', 'millet', 'mais precoce', 'mais grain', 'mais ensilage',
+  // Légumineuses
+  'soja', 'niebe', 'arachide', 'haricot', 'pois', 'lentille', 'dolique',
+  'mucuna', 'crotalaire', 'vesce', 'feverole', 'cowpea', 'bambara',
+  // Tubercules
+  'manioc', 'igname', 'patate douce', 'taro', 'macabo', 'pomme de terre',
+  'patate', 'cassava', 'yam',
+  // Cultures maraîchères / légumes
+  'tomate', 'oignon', 'piment', 'gombo', 'aubergine', 'chou', 'carotte',
+  'laitue', 'concombre', 'courge', 'citrouille', 'navet', 'radis', 'poireau',
+  'epinard', 'amarante', 'bissap',
+  // Fruits
+  'mangue', 'orange', 'banane', 'ananas', 'papaye', 'avocat', 'citron',
+  'citron vert', 'noix de coco', 'coco', 'goyave', 'pastèque', 'melon',
+  // Oléagineux / fibre / industrie
+  'coton', 'sesame', 'tournesol', 'colza', 'palmier', 'palmier a huile',
+  'arachide', 'soja',
+  // Fourrages / couverts
+  'brachiaria', 'luzerne', 'couvert', 'herbe', 'herbe a elephants',
+  'seigle', 'moutarde', 'phacelie', 'trefle', 'ray grass', 'vesce',
+  // Autres
+  'sesame', 'fonio', 'sorgho fourrager', 'mais fourrager',
+]);
+
 export function normaliser(texte: string): string {
   return texte
     .normalize('NFD')
@@ -346,9 +376,6 @@ export function resoudreCulture(texte: string): CultureResolue {
   // Saisie vide : on ne suppose rien (pas de maïs par défaut).
   if (!cle) return { culture: CULTURES.mais, approx: false, valide: false };
 
-  const aLettre = /[a-zà-ÿ]/i.test(brut);
-  const aVoyelle = /[aeiouyàâäéèêëïîôùûü]/i.test(brut);
-
   // Cultures connues : acceptées telles quelles (y compris les noms à plusieurs
   // mots comme « petit mil » ou « patate douce »).
   const direct = Object.values(CULTURES).find(
@@ -368,16 +395,15 @@ export function resoudreCulture(texte: string): CultureResolue {
   if (contenu) return { culture: { ...contenu, court: titreCase(brut) }, approx: false, valide: true };
 
   // À partir d'ici, la saisie n'est pas une culture connue : on n'accepte une
-  // « culture libre » que si elle ressemble vraiment à un nom de culture.
-  // Rejet : trop court, sans lettre, sans voyelle, redoublement pauvre
-  // (« pipi », « mama », « lolo »… : moins de 3 lettres distinctes), ou texte
-  // à plusieurs mots qui n'est pas une culture reconnue (« n'importe quoi »).
-  const lettresDistinctes = new Set(brut.toLowerCase().replace(/[^a-zà-ÿ]/g, '')).size;
-  const multiMots = cle.includes(' ');
-  const plausible =
-    brut.length >= 3 && aLettre && aVoyelle && lettresDistinctes >= 3 && !multiMots;
-  if (!plausible) return { culture: cultureGenerique(brut), approx: true, valide: false };
+  // « culture libre » que si le mot figure dans le vocabulaire des cultures.
+  // Le site sait ainsi distinguer une culture d'autre chose (pipi, mama,
+  // azerty, hello… sont refusés) tout en gardant les coefficients génériques
+  // pour les cultures moins courantes.
+  const dansVocabulaire = VOCABULAIRE_CULTURES.has(cle);
+  if (!dansVocabulaire) {
+    return { culture: cultureGenerique(brut), approx: true, valide: false };
+  }
 
-  // Culture inconnue mais plausible : coefficients génériques, signalés approximatifs.
+  // Culture reconnue mais hors base : coefficients génériques, signalés approximatifs.
   return { culture: cultureGenerique(brut), approx: true, valide: true };
 }

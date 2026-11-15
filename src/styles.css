@@ -2010,3 +2010,9 @@ button {
   border-left: 3px solid #f87171;
   padding-left: 10px;
 }
+
+.culture-note-avert {
+  color: #fcd34d;
+  border-left: 3px solid #fbbf24;
+  padding-left: 10px;
+}

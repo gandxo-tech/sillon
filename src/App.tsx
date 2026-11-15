@@ -390,7 +390,7 @@ export default function App() {
   }, [previsions, projection]);
 
   /** La rotation actuelle part des cultures réellement saisies. */
-  const saisie = useMemo<{ cultures: Culture[]; approx: boolean; nom: string; invalide: boolean }>(() => {
+  const saisie = useMemo<{ cultures: Culture[]; approx: boolean; nom: string; invalide: boolean; nonReconnus: string[] }>(() => {
     const morceaux = cycleLibre.trim()
       ? cycleLibre.split(/[,;›]+/).map((x) => x.trim()).filter(Boolean)
       : [cultureActuelle, cultureSuivante].filter((x) => x.trim().length > 0);
@@ -398,12 +398,14 @@ export default function App() {
     const textes = morceaux;
     const resolus = textes.map((t) => resoudreCulture(t));
     const valides = resolus.filter((r) => r.valide);
+    const nonReconnus = textes.filter((_, i) => !resolus[i].valide);
     const invalide = textes.length > 0 && valides.length === 0;
     return {
       cultures: valides.map((r) => r.culture),
       approx: resolus.some((r) => r.approx),
       nom: valides.length ? valides.map((r) => r.culture.court).join(' puis ') : (textes.length ? 'Culture non reconnue' : 'Aucune culture saisie'),
       invalide,
+      nonReconnus,
     };
   }, [cultureActuelle, cultureSuivante, cycleLibre]);
 
@@ -452,9 +454,16 @@ export default function App() {
 
   const noteInvalide = saisie.invalide ? (
     <p className="culture-note culture-note-erreur">
-      La saisie ne ressemble pas à une culture reconnue (texte trop court, sans lettre ni voyelle).
-      Sillon n’invente pas d’analyse : corrigez la saisie ou laissez le champ vide pour recevoir
-      des propositions depuis votre zone climatique.
+      Sillon ne reconnaît pas cette culture ({saisie.nonReconnus.join(', ')}). Il ne traite que des
+      cultures connues et ne fabrique pas d’analyse à partir de n’importe quoi : corrigez la
+      saisie ou laissez le champ vide pour recevoir des propositions depuis votre zone climatique.
+    </p>
+  ) : null;
+
+  const noteNonReconnus = !saisie.invalide && saisie.nonReconnus.length > 0 ? (
+    <p className="culture-note culture-note-avert">
+      Culture(s) non reconnue(s) et ignorée(s) : {saisie.nonReconnus.join(', ')}. Seules les
+      cultures connues entrent dans le calcul.
     </p>
   ) : null;
 
@@ -557,6 +566,7 @@ export default function App() {
 
           {noteEstimation}
           {noteInvalide}
+          {noteNonReconnus}
 
           <div className="import-csv">
             <button type="button" className="lien" onClick={() => fichierRef.current?.click()}>
