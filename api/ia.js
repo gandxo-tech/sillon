@@ -5,7 +5,10 @@ export default async function handler(req, res) {
   }
 
   // GROK_KEY est le nom utilisé sur ce projet ; GROQ_API_KEY reste accepté.
-  const cle = process.env.GROK_KEY || process.env.GROQ_API_KEY;
+  // La valeur peut contenir une note collée avec la clé : seul le premier mot compte.
+  const cle = String(process.env.GROK_KEY || process.env.GROQ_API_KEY || '')
+    .trim()
+    .split(/\s+/)[0];
   if (!cle) {
     res.status(503).json({
       erreur:
@@ -47,14 +50,16 @@ export default async function handler(req, res) {
     });
   } catch (e) {
     // « TypeError » recouvre deux pannes très différentes : une valeur d'en-tête
-    // refusée (clé mal collée) et un appel réseau qui échoue. On expose la cause
-    // précise, elle ne contient aucun secret.
+    // refusée (clé mal collée) et un appel réseau qui échoue. La cause est
+    // classée ici, jamais recopiée : le message d'origine peut contenir la clé
+    // et cette réponse est publique.
+    const message = String((e && e.message) || '');
     const cause = e && e.cause ? String(e.cause.code || e.cause.message || e.cause) : '';
-    const message = e && e.message ? String(e.message) : 'réseau';
-    console.error('Groq injoignable', e && e.name, message, cause);
-    res.status(502).json({
-      erreur: `Service IA injoignable (${message}${cause ? ` / ${cause}` : ''}).`,
-    });
+    const motif = /invalid header/i.test(message)
+      ? 'clé API mal formée'
+      : cause || 'réseau';
+    console.error('Groq injoignable', motif);
+    res.status(502).json({ erreur: `Service IA injoignable (${motif}).` });
     return;
   }
 
