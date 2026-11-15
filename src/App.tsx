@@ -452,6 +452,8 @@ export default function App() {
               className="marque"
               src="/logo-soil-ai-crew.png"
               alt="Logo Soil AI Crew — NASA Space Apps 2026"
+              width={512}
+              height={512}
             />
             <div>
               <p className="marque-nom">Sillon</p>
@@ -491,6 +493,7 @@ export default function App() {
             <span>Toutes vos cultures, autant que vous voulez (séparées par des virgules)</span>
             <input
               type="text"
+              name="cultures"
               value={cycleLibre}
               onChange={(e) => setCycleLibre(e.target.value)}
               placeholder="maïs, niébé, fonio, sésame, patate douce…"
@@ -610,18 +613,20 @@ export default function App() {
                 </label>
                 <label>
                   Les trois dernières cultures (de la plus ancienne à la plus récente)
-                  <input
-                    type="text"
-                    value={historique}
-                    onChange={(e) => setHistorique(e.target.value)}
-                    placeholder="sorgho, niébé, maïs"
-                    autoComplete="off"
-                  />
+                                      <input
+                      type="text"
+                      name="historique"
+                      value={historique}
+                      onChange={(e) => setHistorique(e.target.value)}
+                      placeholder="sorgho, niébé, maïs"
+                      autoComplete="off"
+                    />
                 </label>
                 <label>
                   Irrigation disponible (mm sur la saison)
                   <input
                     type="number"
+                    name="irrigation"
                     min={0}
                     max={500}
                     value={irrigation}

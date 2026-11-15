@@ -72,8 +72,15 @@ function tropDeDemandes(adresse) {
 
 function adresseDe(req) {
   const transmise = req.headers['x-forwarded-for'];
-  const premiere = String(transmise || '').split(',')[0].trim();
-  return premiere || (req.socket && req.socket.remoteAddress) || 'inconnue';
+  // Sur Vercel, l'IP réelle est ajoutée en fin de chaîne par la plateforme ;
+  // la première entrée peut être fournie par le client et servir à contourner
+  // la limite. On prend donc la dernière.
+  const parties = String(transmise || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const ip = parties.length ? parties[parties.length - 1] : '';
+  return ip || (req.socket && req.socket.remoteAddress) || 'inconnue';
 }
 
 const CONSIGNE = [
