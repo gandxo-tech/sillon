@@ -117,7 +117,7 @@ flowchart LR
 | Source | Endpoint | Variables requested | Resolution | Licence / attribution | Fallback on failure |
 | --- | --- | --- | --- | --- | --- |
 | NASA POWER (LaRC) | `power.larc.nasa.gov/api/temporal/daily/point` (community `AG`) | `PRECTOTCORR`, `T2M`, `T2M_MAX`, `T2M_MIN`, `GWETTOP` | 0.5° × 0.625°, daily, 10 years | Free and open, cite NASA POWER | none: the report stops with an explicit error |
-| ERA5 (Copernicus/ECMWF, via Open-Meteo Archive) | `archive-api.open-meteo.com/v1/archive` | `precipitation_sum`, `temperature_2m_mean/min/max`, `et0_fao_evapotranspiration` | ERA5 native grid 0.25°; the in-app label says ≈9 km (provider's advertised figure — see limitations) | Copernicus licence, attribution "Generated using Copernicus Climate Change Service information" | FAO-56 reference demand recomputed with Hargreaves on POWER temperatures (`features.ts`, `et0Hargreaves`, line 82) |
+| ERA5 (Copernicus/ECMWF, via Open-Meteo Archive) | `archive-api.open-meteo.com/v1/archive` | `precipitation_sum`, `temperature_2m_mean/min/max`, `et0_fao_evapotranspiration` | ERA5 native grid 0.25° (≈ 25–30 km); the in-app label states the native grid (provider also advertises ≈ 9 km — see limitations) | Copernicus licence, attribution "Generated using Copernicus Climate Change Service information" | FAO-56 reference demand recomputed with Hargreaves on POWER temperatures (`features.ts`, `et0Hargreaves`, line 82) |
 | ERA5-Land (via Open-Meteo Archive) | same endpoint, `hourly=soil_moisture_0_to_7cm` | soil moisture 0–7 cm, monthly means | ≈9 km | Copernicus licence | `humiditeSol: null`; charts omit the curve |
 | SoilGrids 2.0 (ISRIC) | `rest.isric.org/soilgrids/v2.0/properties/query` | `clay`, `sand`, `silt`, `soc`, `phh2o`, `wv0033`, `wv1500` at 0-5, 5-15, 15-30, 30-60 cm | 250 m | CC BY 4.0, cite ISRIC | PixelGust re-encoding of SoilGrids (`solPixelGust`, line 333), then WRB class priors (`chargerClassificationSol`, line 514), then documented defaults |
 | SoilGrids classification | `rest.isric.org/soilgrids/v2.0/classification/query` | WRB class | 250 m | CC BY 4.0 | texture priors table, source marked `wrb` or `defaut` |
@@ -335,8 +335,8 @@ computed by `calculerScenario` or a source status.
   CORS. The app degrades and reports the failure, but the report is weaker.
 - **Google Maps key is client-side.** `VITE_GOOGLE_MAPS_API_KEY` is visible in the bundle; it must
   be restricted by HTTP referrer and quota.
-- **ERA5 resolution label.** The in-app status says ≈9 km, the provider's advertised figure; the
-  native ERA5 grid is 0.25° (≈25–30 km at these latitudes), so the label overstates precision.
+- **ERA5 resolution label (corrected).** The in-app status now states the native 0.25° grid
+  (≈ 25–30 km). The provider also advertises ≈ 9 km; the native grid is what matters for precision.
 - **Input costs, not profits.** The budget filter compares input cost to a declared budget; it
   does not model credit, family labour valuation, or land tenure.
 - **No field validation.** The model output has not been compared to measured yields on real
