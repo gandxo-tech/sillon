@@ -99,7 +99,7 @@ export function calculerScenario(
 ): ResultatRotation {
   const cultures = def.cultures ?? def.cycle.map((id) => CULTURES[id]);
   const parId = new Map(cultures.map((c) => [c.id, c]));
-  const n = cultures.length;
+  const n = cultures.length || 1;
 
   const facteurPluie = 1 + condition.pluiePct / 100;
   const pluieSaison = ctx.pluieSaison * facteurPluie;

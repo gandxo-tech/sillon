@@ -128,13 +128,14 @@ export function construireRapport(
 ): Rapport {
   const reference = sortie.reference;
   const meilleure = sortie.meilleure;
+  const aReference = reference.cultures.length > 0;
   const selecteur = new SelecteurVariantes(sortie.graine);
   const cal = calendrier(profil);
 
-  const ecartRevenuFcfa = meilleure.metriques.revenuNetFcfa - reference.metriques.revenuNetFcfa;
-  const ecartEauMm = reference.metriques.base.deficit - meilleure.metriques.base.deficit;
-  const ecartTravailJours = meilleure.metriques.travailJoursHa - reference.metriques.travailJoursHa;
-  const ecartErosionT = reference.metriques.base.erosion - meilleure.metriques.base.erosion;
+  const ecartRevenuFcfa = aReference ? meilleure.metriques.revenuNetFcfa - reference.metriques.revenuNetFcfa : 0;
+  const ecartEauMm = aReference ? reference.metriques.base.deficit - meilleure.metriques.base.deficit : 0;
+  const ecartTravailJours = aReference ? meilleure.metriques.travailJoursHa - reference.metriques.travailJoursHa : 0;
+  const ecartErosionT = aReference ? reference.metriques.base.erosion - meilleure.metriques.base.erosion : 0;
 
   const donnees: Donnees = {
     rotation: meilleure.metriques.base.def.accroche,
@@ -227,7 +228,11 @@ export function construireRapport(
     );
   }
   if (pucesPourquoi.length < 3) {
-    pucesPourquoi.push(`Elle obtient ${nombre(donnees.score, 1)} points sur 100, contre ${nombre(donnees.scoreActuel, 1)} pour la vôtre.`);
+    if (aReference) {
+      pucesPourquoi.push(`Elle obtient ${nombre(donnees.score, 1)} points sur 100, contre ${nombre(donnees.scoreActuel, 1)} pour la vôtre.`);
+    } else {
+      pucesPourquoi.push(`Elle obtient ${nombre(donnees.score, 1)} points sur 100. Aucune culture de référence n’a été saisie : la comparaison est indicative.`);
+    }
   }
   if (pucesPourquoi.length < 3) {
     pucesPourquoi.push(`Vous semez en ${cal.semis} et vous récoltez en ${cal.recolte}.`);
@@ -456,7 +461,9 @@ export function construireRapport(
     `Verdict : ${verdict.badge}. ${verdict.phrase}`,
     `Rotation conseillée : ${meilleure.nom} (${meilleure.metriques.base.def.accroche}), ${nombre(donnees.score, 1)} / 100.`,
     `Votre rotation : ${actuelleNom}, ${nombre(donnees.scoreActuel, 1)} / 100.`,
-    `Revenu : ${fcfa(meilleure.metriques.revenuNetFcfa)} FCFA/ha contre ${fcfa(reference.metriques.revenuNetFcfa)} aujourd’hui.`,
+    aReference
+      ? `Revenu : ${fcfa(meilleure.metriques.revenuNetFcfa)} FCFA/ha contre ${fcfa(reference.metriques.revenuNetFcfa)} aujourd’hui.`
+      : `Revenu : ${fcfa(meilleure.metriques.revenuNetFcfa)} FCFA/ha (aucune culture de référence saisie).`,
     `Eau manquante : ${mm(meilleure.metriques.base.deficit)} mm sur la saison.`,
     `Travail : ${nombre(meilleure.metriques.travailJoursHa)} jours par hectare.`,
     `Semis en ${cal.semis}, récolte en ${cal.recolte}.`,

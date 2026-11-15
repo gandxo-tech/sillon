@@ -214,7 +214,8 @@ farmer typed and generates every ordered pair and ordered triple **from those cr
 8, deduplicated by crop id), discarding successions whose individual cycles do not fit the season
 (+15 days tolerance). The 23-crop reference base is opened only when none of those successions
 survives the hard filters; the report then states that the search was widened. A crop the farmer
-does not own is never proposed silently.
+does not own is never proposed silently. There is also no silent default crop: an empty input is
+kept empty, and the report then compares proposals without inventing a "your rotation" baseline.
 
 Why the hard-coded catalogue was removed: an 18-archetype library always returned one of its own
 rotations, so a farmer growing dolique or taro was answered with a rotation he does not practise.

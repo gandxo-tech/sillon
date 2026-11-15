@@ -334,7 +334,7 @@ function evaluer(
   poids: Poids,
 ): Metriques {
   const base = calculerScenario(def, e.ctx, e.condition);
-  const n = cultures.length;
+  const n = cultures.length || 1;
 
   const azoteFixeMoyen = moy(cultures.map((c) => c.azoteFixe));
   const primeLegumineusePts = azoteFixeMoyen > 0 ? 8 + 6 * Math.min(1, azoteFixeMoyen / 190) : 0;

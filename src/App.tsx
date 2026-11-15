@@ -394,12 +394,13 @@ export default function App() {
     const morceaux = cycleLibre.trim()
       ? cycleLibre.split(/[,;›]+/).map((x) => x.trim()).filter(Boolean)
       : [cultureActuelle, cultureSuivante].filter((x) => x.trim().length > 0);
-    const textes = morceaux.length ? morceaux : ['maïs'];
+    // Aucun défaut silencieux : si rien n'est saisi, on ne suppose pas une culture.
+    const textes = morceaux;
     const resolus = textes.map((t) => resoudreCulture(t));
     return {
       cultures: resolus.map((r) => r.culture),
       approx: resolus.some((r) => r.approx),
-      nom: resolus.map((r) => r.culture.court).join(' puis '),
+      nom: resolus.length ? resolus.map((r) => r.culture.court).join(' puis ') : 'Aucune culture saisie',
     };
   }, [cultureActuelle, cultureSuivante, cycleLibre]);
 

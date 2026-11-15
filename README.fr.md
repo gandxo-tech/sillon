@@ -216,7 +216,9 @@ partir de ces seules cultures** (8 au maximum, dédoublonnés par identifiant), 
 successions dont les cycles ne tiennent pas dans la saison (+15 jours de tolérance). La base de
 référence de 23 cultures n'est ouverte que si aucune de ces successions ne survit aux filtres
 durs ; le rapport indique alors que la recherche a été élargie. Une culture que l'exploitant ne
-possède pas n'est jamais proposée en silence.
+possède pas n'est jamais proposée en silence. Il n'y a pas non plus de culture par défaut silencieuse :
+une saisie vide reste vide, et le rapport compare alors les propositions sans inventer de rotation
+« la vôtre ».
 
 Pourquoi le catalogue codé en dur a été supprimé : une bibliothèque de 18 archétypes renvoyait
 toujours une de ses propres rotations, si bien qu'un agriculteur qui cultive du dolique ou du taro
