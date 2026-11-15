@@ -2004,3 +2004,9 @@ button {
 .footer-lien {
   margin: 8px 0 0;
 }
+
+.culture-note-erreur {
+  color: #fca5a5;
+  border-left: 3px solid #f87171;
+  padding-left: 10px;
+}

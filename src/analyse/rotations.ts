@@ -335,30 +335,41 @@ export interface CultureResolue {
   culture: Culture;
   /** Vrai si le texte saisi ne correspond à aucune culture connue. */
   approx: boolean;
+  /** Faux si la saisie ne ressemble pas à une culture (texte vide, trop court, sans lettre ni voyelle). */
+  valide: boolean;
 }
 
 /** Accepte un identifiant de la base, un nom usuel, ou un texte libre. */
 export function resoudreCulture(texte: string): CultureResolue {
   const brut = (texte ?? '').trim();
   const cle = normaliser(brut);
-  if (!cle) return { culture: CULTURES.mais, approx: false };
+  // Saisie vide : on ne suppose rien (pas de maïs par défaut).
+  if (!cle) return { culture: CULTURES.mais, approx: false, valide: false };
+
+  // Rejet des saisies qui ne ressemblent pas à une culture (chiffres, symboles,
+  // trop court, sans voyelle) : on n'analyse pas du « n'importe quoi ».
+  const aLettre = /[a-zà-ÿ]/i.test(brut);
+  const aVoyelle = /[aeiouyàâäéèêëïîôùûü]/i.test(brut);
+  const valide = brut.length >= 3 && aLettre && aVoyelle;
+  if (!valide) return { culture: cultureGenerique(brut), approx: true, valide: false };
 
   const direct = Object.values(CULTURES).find(
     (c) => normaliser(c.id) === cle || normaliser(c.nom) === cle || normaliser(c.court) === cle,
   );
-  if (direct) return { culture: direct, approx: false };
+  if (direct) return { culture: direct, approx: false, valide: true };
 
   const viaSynonyme = SYNONYMES[cle];
   if (viaSynonyme) {
     // On garde les coefficients de la culture proche, mais le nom saisi.
-    return { culture: { ...CULTURES[viaSynonyme], court: titreCase(brut) }, approx: false };
+    return { culture: { ...CULTURES[viaSynonyme], court: titreCase(brut) }, approx: false, valide: true };
   }
 
   // Saisie partielle : « maïs », « soja bio »…
   const contenu = Object.values(CULTURES).find(
     (c) => cle.length >= 3 && (cle.includes(normaliser(c.court)) || normaliser(c.court).includes(cle)),
   );
-  if (contenu) return { culture: { ...contenu, court: titreCase(brut) }, approx: false };
+  if (contenu) return { culture: { ...contenu, court: titreCase(brut) }, approx: false, valide: true };
 
-  return { culture: cultureGenerique(brut), approx: true };
+  // Culture inconnue mais plausible : coefficients génériques, signalés approximatifs.
+  return { culture: cultureGenerique(brut), approx: true, valide: true };
 }

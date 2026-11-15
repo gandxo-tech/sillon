@@ -390,17 +390,20 @@ export default function App() {
   }, [previsions, projection]);
 
   /** La rotation actuelle part des cultures réellement saisies. */
-  const saisie = useMemo<{ cultures: Culture[]; approx: boolean; nom: string }>(() => {
+  const saisie = useMemo<{ cultures: Culture[]; approx: boolean; nom: string; invalide: boolean }>(() => {
     const morceaux = cycleLibre.trim()
       ? cycleLibre.split(/[,;›]+/).map((x) => x.trim()).filter(Boolean)
       : [cultureActuelle, cultureSuivante].filter((x) => x.trim().length > 0);
     // Aucun défaut silencieux : si rien n'est saisi, on ne suppose pas une culture.
     const textes = morceaux;
     const resolus = textes.map((t) => resoudreCulture(t));
+    const valides = resolus.filter((r) => r.valide);
+    const invalide = textes.length > 0 && valides.length === 0;
     return {
-      cultures: resolus.map((r) => r.culture),
+      cultures: valides.map((r) => r.culture),
       approx: resolus.some((r) => r.approx),
-      nom: resolus.length ? resolus.map((r) => r.culture.court).join(' puis ') : 'Aucune culture saisie',
+      nom: valides.length ? valides.map((r) => r.culture.court).join(' puis ') : (textes.length ? 'Culture non reconnue' : 'Aucune culture saisie'),
+      invalide,
     };
   }, [cultureActuelle, cultureSuivante, cycleLibre]);
 
@@ -411,7 +414,7 @@ export default function App() {
 
   const sortie = useMemo(
     () =>
-      etat.statut === 'pret' && contexte
+      etat.statut === 'pret' && contexte && !saisie.invalide
         ? chercherRotations({
             ctx: contexte,
             condition,
@@ -439,11 +442,19 @@ export default function App() {
   );
   const meilleurId = sortie?.meilleure.id ?? '';
 
-  const noteEstimation = saisie.approx ? (
+  const noteEstimation = saisie.approx && !saisie.invalide ? (
     <p className="culture-note">
       Une culture saisie n’est pas dans la base : faute de coefficients mesurés, Sillon applique une
       culture générique de 120 jours. Le score reste comparable, mais c’est une estimation à
       confirmer par vos références locales.
+    </p>
+  ) : null;
+
+  const noteInvalide = saisie.invalide ? (
+    <p className="culture-note culture-note-erreur">
+      La saisie ne ressemble pas à une culture reconnue (texte trop court, sans lettre ni voyelle).
+      Sillon n’invente pas d’analyse : corrigez la saisie ou laissez le champ vide pour recevoir
+      des propositions depuis votre zone climatique.
     </p>
   ) : null;
 
@@ -459,6 +470,8 @@ export default function App() {
       `Culture en place : ${cultureActuelle || 'non précisée'}.`,
       `Culture suivante : ${cultureSuivante || 'non précisée'}.`,
       `Irrigation disponible : ${irrigation} mm.`,
+      `Rotation conseillée par le moteur : ${sortie?.meilleure.nom ?? 'aucune'} (score ${sortie?.meilleure.score ?? 0}/100).`,
+      `Verdict du moteur : ${rapport.verdict.badge}. ${rapport.verdict.phrase}`,
     ]
       .filter(Boolean)
       .join(' ');
@@ -543,6 +556,7 @@ export default function App() {
           </p>
 
           {noteEstimation}
+          {noteInvalide}
 
           <div className="import-csv">
             <button type="button" className="lien" onClick={() => fichierRef.current?.click()}>
