@@ -346,13 +346,11 @@ export function resoudreCulture(texte: string): CultureResolue {
   // Saisie vide : on ne suppose rien (pas de maïs par défaut).
   if (!cle) return { culture: CULTURES.mais, approx: false, valide: false };
 
-  // Rejet des saisies qui ne ressemblent pas à une culture (chiffres, symboles,
-  // trop court, sans voyelle) : on n'analyse pas du « n'importe quoi ».
   const aLettre = /[a-zà-ÿ]/i.test(brut);
   const aVoyelle = /[aeiouyàâäéèêëïîôùûü]/i.test(brut);
-  const valide = brut.length >= 3 && aLettre && aVoyelle;
-  if (!valide) return { culture: cultureGenerique(brut), approx: true, valide: false };
 
+  // Cultures connues : acceptées telles quelles (y compris les noms à plusieurs
+  // mots comme « petit mil » ou « patate douce »).
   const direct = Object.values(CULTURES).find(
     (c) => normaliser(c.id) === cle || normaliser(c.nom) === cle || normaliser(c.court) === cle,
   );
@@ -360,15 +358,25 @@ export function resoudreCulture(texte: string): CultureResolue {
 
   const viaSynonyme = SYNONYMES[cle];
   if (viaSynonyme) {
-    // On garde les coefficients de la culture proche, mais le nom saisi.
     return { culture: { ...CULTURES[viaSynonyme], court: titreCase(brut) }, approx: false, valide: true };
   }
 
-  // Saisie partielle : « maïs », « soja bio »…
+  // Saisie partielle sur une culture connue : « maïs », « soja bio »…
   const contenu = Object.values(CULTURES).find(
     (c) => cle.length >= 3 && (cle.includes(normaliser(c.court)) || normaliser(c.court).includes(cle)),
   );
   if (contenu) return { culture: { ...contenu, court: titreCase(brut) }, approx: false, valide: true };
+
+  // À partir d'ici, la saisie n'est pas une culture connue : on n'accepte une
+  // « culture libre » que si elle ressemble vraiment à un nom de culture.
+  // Rejet : trop court, sans lettre, sans voyelle, redoublement pauvre
+  // (« pipi », « mama », « lolo »… : moins de 3 lettres distinctes), ou texte
+  // à plusieurs mots qui n'est pas une culture reconnue (« n'importe quoi »).
+  const lettresDistinctes = new Set(brut.toLowerCase().replace(/[^a-zà-ÿ]/g, '')).size;
+  const multiMots = cle.includes(' ');
+  const plausible =
+    brut.length >= 3 && aLettre && aVoyelle && lettresDistinctes >= 3 && !multiMots;
+  if (!plausible) return { culture: cultureGenerique(brut), approx: true, valide: false };
 
   // Culture inconnue mais plausible : coefficients génériques, signalés approximatifs.
   return { culture: cultureGenerique(brut), approx: true, valide: true };
