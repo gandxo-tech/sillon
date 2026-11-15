@@ -56,6 +56,9 @@ export interface Culture {
   caloriesMcalHa: number;
   /** Grande famille agronomique, utilisée par le moteur pour classer les successions. */
   typeCulture: 'cereale' | 'legumineuse' | 'tubercule' | 'couvert' | 'fourragere';
+  /** Zones agro-climatiques où la culture est habituellement cultivée.
+   *  Absent = universelle. */
+  zones?: ('tropical' | 'subtropical' | 'temperate')[];
   /** Origine de la valeur : mesure connue, ou estimation assumée. */
   source?: 'mesure' | 'estime';
 }
@@ -75,6 +78,7 @@ export const CULTURES: Record<string, Culture> = {
   },
   ble: {
     id: 'ble', nom: 'Blé tendre d’hiver', court: 'Blé', picto: 'B', teinte: '#8b96f5', famille: 'Poacée',
+    zones: ['temperate'],
     kc: 0.72, partSaison: 0.62, besoinJours: 110, azoteDemande: 115, azoteFixe: 0,
     residus: 3.6, couverture: 0.86, facteurC: 0.14, marge: 520, toleranceSecheresse: 0.55, facteurReserve: 1.15, retour: 3, phMin: 5.5, phMax: 7.8,
     travailJoursHa: 35, coutIntrantFcfaHa: 85000, marche: 'marche', caloriesMcalHa: 3300, typeCulture: 'cereale', source: 'mesure',
@@ -87,18 +91,21 @@ export const CULTURES: Record<string, Culture> = {
   },
   couvert: {
     id: 'couvert', nom: 'Couvert seigle / vesce', court: 'Couvert', picto: 'C', teinte: '#7f8ccc', famille: 'Mixte',
+    zones: ['temperate', 'subtropical'],
     kc: 0.35, partSaison: 0.35, besoinJours: 60, azoteDemande: 0, azoteFixe: 45,
     residus: 2.6, couverture: 1, facteurC: 0.05, marge: -140, toleranceSecheresse: 0.9, facteurReserve: 0.7, retour: 1, phMin: 4.8, phMax: 8.4,
     travailJoursHa: 12, coutIntrantFcfaHa: 25000, marche: 'autoconsommation', caloriesMcalHa: 0, typeCulture: 'couvert', source: 'mesure',
   },
   luzerne: {
     id: 'luzerne', nom: 'Luzerne (3 ans)', court: 'Luzerne', picto: 'L', teinte: '#3346ff', famille: 'Fabacée',
+    zones: ['temperate', 'subtropical'],
     kc: 0.95, partSaison: 1, besoinJours: 120, azoteDemande: 25, azoteFixe: 190,
     residus: 4.2, couverture: 0.95, facteurC: 0.08, marge: 600, toleranceSecheresse: 0.72, facteurReserve: 1.7, retour: 4, perenne: true, phMin: 6.2, phMax: 8.0,
     travailJoursHa: 55, coutIntrantFcfaHa: 130000, marche: 'eleveur', caloriesMcalHa: 2800, typeCulture: 'fourragere', source: 'mesure',
   },
   pois: {
     id: 'pois', nom: 'Pois protéagineux', court: 'Pois', picto: 'P', teinte: '#5a67c9', famille: 'Fabacée',
+    zones: ['temperate', 'subtropical'],
     kc: 0.78, partSaison: 0.6, besoinJours: 100, azoteDemande: 20, azoteFixe: 85,
     residus: 2.2, couverture: 0.72, facteurC: 0.18, marge: 480, toleranceSecheresse: 0.5, facteurReserve: 0.9, retour: 4, phMin: 6.0, phMax: 7.8,
     travailJoursHa: 38, coutIntrantFcfaHa: 70000, marche: 'marche', caloriesMcalHa: 1800, typeCulture: 'legumineuse', source: 'mesure',

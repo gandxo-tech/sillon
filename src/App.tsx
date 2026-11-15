@@ -733,6 +733,15 @@ export default function App() {
           </p>
           </details>
           <details>
+            <summary>Le système propose-t-il des cultures qui ne poussent pas ici ?</summary>
+            <p>
+              Non pour les suggestions automatiques : la recherche élargie n’ajoute que des cultures
+              compatibles avec la zone climatique de votre parcelle (déduite de la latitude). Le blé,
+              par exemple, n’est proposé qu’en zone tempérée. Si vous saisissez vous-même une culture,
+              elle est respectée, mais le rapport signale qu’elle est estimée.
+            </p>
+          </details>
+          <details>
             <summary>La langue s’adapte-t-elle à l’utilisateur ?</summary>
             <p>
               Oui : les sept premiers blocs du rapport évitent le jargon, et les termes techniques

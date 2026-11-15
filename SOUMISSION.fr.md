@@ -103,7 +103,7 @@ milieu. Chaque source rend son propre état dans le rapport (bloc 8).
 |---|---|---|
 | Parcelle sèche, priorité revenu | Mil puis Sorgho | 49,1 |
 | Sans cheptel déclaré | Niébé puis Maïs puis Niébé | 61,4 |
-| Historique contenant du maïs | Blé puis Luzerne | 61,9 |
+| Historique contenant du maïs | Brachiaria puis Soja puis Brachiaria | 59,9 |
 | Priorité argent (cas 4, jeu A) | Niébé puis Sorgho puis Niébé | 56,7 |
 | Parcelle humide, cheptel, budget moyen | Maïs puis Arachide puis Maïs | 55,4 |
 

@@ -223,7 +223,23 @@ function valide(cultures: Culture[]): boolean {
  * Une culture inconnue de la base arrive ici avec des coefficients génériques
  * et participe normalement à la recherche.
  */
-export function completerPool(saisies: Culture[], elargir = false): Culture[] {
+export type ZoneClimat = 'tropical' | 'subtropical' | 'temperate';
+
+/** Zone agro-climatique déduite de la latitude. */
+export function zoneDeLat(lat: number): ZoneClimat {
+  const a = Math.abs(lat);
+  if (a < 23.5) return 'tropical';
+  if (a < 35) return 'subtropical';
+  return 'temperate';
+}
+
+/** Une culture convient-elle à cette zone ? Absence de `zones` = universelle. */
+export function convientZone(c: Culture, zone: ZoneClimat): boolean {
+  if (!c.zones || c.zones.length === 0) return true;
+  return c.zones.includes(zone);
+}
+
+export function completerPool(saisies: Culture[], elargir = false, lat?: number): Culture[] {
   const pool: Culture[] = [];
   const ajouter = (c: Culture | undefined) => {
     if (!c) return;
@@ -234,12 +250,18 @@ export function completerPool(saisies: Culture[], elargir = false): Culture[] {
   for (const c of saisies) ajouter(c);
   if (!elargir) return pool;
 
+  const zone = lat === undefined ? null : zoneDeLat(lat);
+  const convient = (c: Culture): boolean => (zone === null ? true : convientZone(c, zone));
+
   const types: Culture['typeCulture'][] = ['cereale', 'legumineuse', 'tubercule', 'couvert', 'fourragere'];
   for (const t of types) {
     if (pool.some((c) => c.typeCulture === t)) continue;
-    ajouter(CULTURES_LISTE.find((c) => c.typeCulture === t));
+    ajouter(CULTURES_LISTE.find((c) => c.typeCulture === t && convient(c)));
   }
-  for (const c of CULTURES_LISTE) ajouter(c);
+  for (const c of CULTURES_LISTE) {
+    if (!convient(c)) continue;
+    ajouter(c);
+  }
   return pool;
 }
 
@@ -247,8 +269,8 @@ export function completerPool(saisies: Culture[], elargir = false): Culture[] {
  * Toutes les successions plausibles de deux ou trois cultures du pool,
  * dans l'ordre. C'est ici que se joue la recherche, pas dans un catalogue.
  */
-export function construireEspace(saisies: Culture[], saisonJours?: number, elargir = false): Succession[] {
-  const pool = completerPool(saisies, elargir);
+export function construireEspace(saisies: Culture[], saisonJours?: number, elargir = false, lat?: number): Succession[] {
+  const pool = completerPool(saisies, elargir, lat);
   const out: Succession[] = [];
   const vus = new Set<string>();
 
@@ -691,11 +713,11 @@ export function chercherRotations(e: EntreeMoteur): SortieMoteur {
   /* Première passe : uniquement les cultures de l'exploitant. La base ne sert
      qu'en dernier recours, si rien de ce qu'il cultive ne passe les filtres.
      Il voit alors la mention « recherche élargie » dans le bloc technique. */
-  let espace = construireEspace(e.actuelle, e.ctx.saisonJours);
+  let espace = construireEspace(e.actuelle, e.ctx.saisonJours, false, e.lat);
   let base = classer(espace, e, poids, e.condition, historiqueIds);
   let poolElargi = false;
   if (!base.retenus.length) {
-    espace = construireEspace(e.actuelle, e.ctx.saisonJours, true);
+    espace = construireEspace(e.actuelle, e.ctx.saisonJours, true, e.lat);
     base = classer(espace, e, poids, e.condition, historiqueIds);
     poolElargi = true;
   }

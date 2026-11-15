@@ -97,7 +97,7 @@ Listed in the report itself (block 6) and in `README.md` §10:
 |---|---|---|
 | Dry plot, income priority | Mil then Sorghum | 49.1 |
 | No livestock declared | Cowpea then Maize then Cowpea | 61.4 |
-| History containing maize | Wheat then Lucerne | 61.9 |
+| History containing maize | Brachiaria then Soybean then Brachiaria | 59.9 |
 | Income priority (case 4A) | Cowpea then Sorghum then Cowpea | 56.7 |
 | Humid plot, livestock, medium budget | Maize then Peanut then Maize | 55.4 |
 

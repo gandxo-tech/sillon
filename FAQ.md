@@ -17,6 +17,12 @@ dans le rapport (bloc 8). Le moteur tourne sur les données disponibles.
 Non au niveau du champ. SoilGrids est une prédiction globale. Le rapport le
 dit et recommande une analyse de terre.
 
+## Le système propose-t-il des cultures qui ne poussent pas ici ?
+Non pour les suggestions automatiques : la recherche élargie n’ajoute que des cultures
+compatibles avec la zone climatique de votre parcelle (déduite de la latitude). Le blé,
+par exemple, n’est proposé qu’en zone tempérée. Si vous saisissez vous-même une culture,
+elle est respectée, mais le rapport signale qu’elle est estimée.
+
 ## La langue s’adapte-t-elle à l’utilisateur ?
 Oui : les sept premiers blocs évitent le jargon, les termes techniques sont
 réservés au bloc 8 replié. Le conseil IA répond en français simple. Une
