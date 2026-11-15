@@ -426,8 +426,9 @@ const nomDe = (c: Culture) => c.court.toLowerCase();
  * Cycle : une culture doit tenir dans une saison. Pour une séquence semée
  * la même saison (céréale + couverture), c'est le cumul qui compte.
  */
-function excesCycle(s: Succession, e: EntreeMoteur): Omit<RejetInterne, 'code'> | null {
-  const limite = e.ctx.saisonJours + 15;
+function excesCycle(s: Succession, e: EntreeMoteur, relaxe = false): Omit<RejetInterne, 'code'> | null {
+  const marge = relaxe ? 45 : 15;
+  const limite = e.ctx.saisonJours + marge;
   const tropLongue = s.cultures.find((c) => c.besoinJours > limite);
   if (tropLongue) {
     return {
@@ -453,6 +454,7 @@ function excesCycle(s: Succession, e: EntreeMoteur): Omit<RejetInterne, 'code'> 
 function excesRetour(
   s: Succession,
   historiqueIds: string[],
+  relaxe = false,
 ): Omit<RejetInterne, 'code'> | null {
   /* Répétition à l'intérieur de la succession : une culture qui revient trop
      tôt annule l'effet de la rotation, que l'historique soit connu ou non. */
@@ -472,6 +474,9 @@ function excesRetour(
   }
 
   const n = historiqueIds.length;
+  // En mode relâché, on garde l'avertissement mais on ne bloque pas sur
+  // l'historique : le rapport signalera le retour trop rapproché.
+  if (relaxe) return null;
   if (!n) return null;
   for (let position = 0; position < s.cultures.length; position += 1) {
     const culture = s.cultures[position];
@@ -496,14 +501,16 @@ function verifier(
   m: Metriques,
   e: EntreeMoteur,
   historiqueIds: string[],
+  relaxe = false,
 ): RejetInterne | null {
-  const cycle = excesCycle(s, e);
+  const cycle = excesCycle(s, e, relaxe);
   if (cycle) return { code: 'CYCLE', ...cycle };
 
-  const retour = excesRetour(s, historiqueIds);
+  const retour = excesRetour(s, historiqueIds, relaxe);
   if (retour) return { code: 'RETOUR', ...retour };
 
-  const horsPh = s.cultures.find((c) => e.ctx.ph < c.phMin || e.ctx.ph > c.phMax);
+  const margePh = relaxe ? 0.5 : 0;
+  const horsPh = s.cultures.find((c) => e.ctx.ph < c.phMin - margePh || e.ctx.ph > c.phMax + margePh);
   if (horsPh) {
     return {
       code: 'PH',
@@ -512,7 +519,8 @@ function verifier(
     };
   }
 
-  if (e.ctx.pente !== null && e.ctx.pente > 8 && m.base.erosion > 7) {
+  // En mode relâché, l'érosion ne bloque plus : le rapport la signalera.
+  if (!relaxe && e.ctx.pente !== null && e.ctx.pente > 8 && m.base.erosion > 7) {
     return {
       code: 'EROSION',
       cause: 'pente',
@@ -520,7 +528,7 @@ function verifier(
     };
   }
 
-  if (!e.cheptel) {
+  if (!relaxe && !e.cheptel) {
     const versCheptel = s.cultures.find((c) => c.marche === 'eleveur');
     if (versCheptel) {
       return {
@@ -535,7 +543,8 @@ function verifier(
   // succession, pas au total des années cumulées.
   const budget = CAPITAL_FCFA[e.capital];
   const coutAnnuel = m.coutIntrantFcfaHa / s.cultures.length;
-  if (coutAnnuel > budget) {
+  const budgetEffectif = relaxe ? budget * 1.3 : budget;
+  if (coutAnnuel > budgetEffectif) {
     return {
       code: 'CAPITAL',
       cause: 'budget',
@@ -543,7 +552,8 @@ function verifier(
     };
   }
 
-  if (m.base.stress > 0.55) {
+  const seuilStress = relaxe ? 0.75 : 0.55;
+  if (m.base.stress > seuilStress) {
     return {
       code: 'EAU',
       cause: 'eau',
@@ -606,6 +616,8 @@ export interface SortieMoteur {
   nombreCandidats: number;
   /** Vrai si la base a dû être ouverte faute de succession retenue avec vos cultures. */
   poolElargi: boolean;
+  /** Vrai si même la base complète n'a rien donné et qu'il a fallu relâcher les seuils. */
+  poolRelaxe: boolean;
 }
 
 const definitionDe = (s: Succession): DefinitionScenario => ({
@@ -680,6 +692,7 @@ function classer(
   poids: Poids,
   condition: Condition,
   historiqueIds: string[],
+  relaxe = false,
 ): {
   retenus: { s: Succession; m: Metriques }[];
   rejets: { s: Succession; rejet: RejetInterne; score: number }[];
@@ -690,7 +703,7 @@ function classer(
 
   for (const s of espace) {
     const m = evaluer(definitionDe(s), s.cultures, e2, poids);
-    const rejet = verifier(s, m, e2, historiqueIds);
+    const rejet = verifier(s, m, e2, historiqueIds, relaxe);
     if (rejet) rejets.push({ s, rejet, score: m.score });
     else retenus.push({ s, m });
   }
@@ -716,10 +729,19 @@ export function chercherRotations(e: EntreeMoteur): SortieMoteur {
   let espace = construireEspace(e.actuelle, e.ctx.saisonJours, false, e.lat);
   let base = classer(espace, e, poids, e.condition, historiqueIds);
   let poolElargi = false;
+  let poolRelaxe = false;
   if (!base.retenus.length) {
     espace = construireEspace(e.actuelle, e.ctx.saisonJours, true, e.lat);
     base = classer(espace, e, poids, e.condition, historiqueIds);
     poolElargi = true;
+  }
+  /* Dernier recours : si rien ne passe même avec la base complète, on relâche
+     les seuils les plus stricts (érosion, cycle, pH, eau, budget) pour rendre
+     au moins quelques options actionnables au lieu d'un mur. Les contraintes
+     agronomiques dures (retour, marché/cheptel) restent appliquées. */
+  if (!base.retenus.length) {
+    base = classer(espace, e, poids, e.condition, historiqueIds, true);
+    poolRelaxe = true;
   }
 
   const retenus: Candidat[] = base.retenus.slice(0, 8).map((r, i) => {
@@ -824,5 +846,6 @@ export function chercherRotations(e: EntreeMoteur): SortieMoteur {
     graine,
     nombreCandidats: espace.length,
     poolElargi,
+    poolRelaxe,
   };
 }

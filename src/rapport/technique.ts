@@ -41,6 +41,11 @@ export function paragraphesTechniques(sortie: SortieMoteur): string[] {
       'Vos cultures, seules, ne donnaient aucune succession retenue : la recherche a été élargie à la base de référence. Les cultures que vous n’avez pas déclarées sont donc proposées, à titre de comparaison.',
     );
   }
+  if (sortie.poolRelaxe) {
+    lignes.push(
+      'Même la base complète n’a rien donné avec les seuils habituels : les seuils d’érosion, de cycle, de pH, d’eau et de budget ont été assouplis pour rendre quelques options actionnables. Les contraintes agronomiques dures (retour des cultures, débouché cheptel) restent appliquées.',
+    );
+  }
 
   return lignes;
 }

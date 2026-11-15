@@ -164,6 +164,26 @@ export function construireRapport(
   const eauTendue = meilleure.metriques.base.stress > 0.32;
   const estLaVotre = meilleure.id === 'utilisateur';
   const aucuneOption = sortie.classement.length === 0;
+
+  /* Quand rien ne passe, on nomme la vraie cause plutôt que de blâmer
+     l’eau ou le budget par défaut : les rejets disent ce qui bloque. */
+  const codeDominant = (() => {
+    const comptes = new Map<string, number>();
+    for (const r of sortie.rejets) comptes.set(r.code, (comptes.get(r.code) ?? 0) + 1);
+    let meilleur = '';
+    let max = 0;
+    for (const [code, n] of comptes) if (n > max) { max = n; meilleur = code; }
+    return meilleur;
+  })();
+  const phraseBlocage =
+    codeDominant === 'EAU' ? 'l’eau manque trop souvent pour tenir la saison'
+      : codeDominant === 'CAPITAL' ? 'le budget d’intrants est trop serré'
+        : codeDominant === 'CYCLE' ? 'les cycles sont trop longs pour la saison'
+          : codeDominant === 'PH' ? 'le pH de la terre ne convient pas'
+            : codeDominant === 'EROSION' ? 'l’érosion est trop forte sur cette pente'
+              : codeDominant === 'MARCHE' ? 'il manque un débouché (cheptel)'
+                : codeDominant === 'RETOUR' ? 'le retour des cultures est trop rapproché'
+                  : 'l’eau ou le budget';
   const niveau: NiveauVerdict = aucuneOption
     ? 'non'
     : estLaVotre
@@ -199,7 +219,7 @@ export function construireRapport(
     // Le badge est un rond de 46 px : au-delà de quatre lettres, il déborde.
     badgeCourt: niveau === 'non' ? 'Non' : 'Oui',
     phrase: aucuneOption
-      ? `Rien ne passe cette année sur ce champ. Il faut d’abord régler l’eau ou le budget.`
+      ? `Rien ne passe cette année sur ce champ. Il faut d’abord régler ${phraseBlocage}.`
       : phraseVerdict,
     rotation: meilleure.metriques.base.def.accroche,
   };
