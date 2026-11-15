@@ -20,11 +20,12 @@ export default async function handler(req, res) {
     data.question || 'Donne un conseil court et concret pour cette parcelle.',
   ).slice(0, 500);
 
+  let r;
   try {
-    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${cle}`,
+        Authorization: `Bearer ${cle.trim()}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -44,20 +45,36 @@ export default async function handler(req, res) {
         max_tokens: 400,
       }),
     });
-
-    if (!r.ok) {
-      res.status(502).json({ erreur: `Service IA indisponible (${r.status}).` });
-      return;
-    }
-
-    const j = await r.json();
-    const reponse = (j?.choices?.[0]?.message?.content || '').trim();
-    if (!reponse) {
-      res.status(502).json({ erreur: 'Réponse vide du service IA.' });
-      return;
-    }
-    res.status(200).json({ reponse });
   } catch (e) {
-    res.status(502).json({ erreur: 'Erreur réseau vers le service IA.' });
+    // Journalisé pour être lisible dans Vercel → Deployment → Logs.
+    console.error('Groq injoignable', e && e.name, e && e.message);
+    res.status(502).json({
+      erreur: `Service IA injoignable (${(e && (e.name || 'réseau')) || 'réseau'}).`,
+    });
+    return;
   }
+
+  if (!r.ok) {
+    const detail = await r.text().catch(() => '');
+    console.error('Groq a répondu', r.status, detail.slice(0, 300));
+    res.status(502).json({ erreur: `Service IA indisponible (${r.status}).` });
+    return;
+  }
+
+  let j;
+  try {
+    j = await r.json();
+  } catch (e) {
+    console.error('Réponse Groq illisible', e && e.message);
+    res.status(502).json({ erreur: 'Réponse illisible du service IA.' });
+    return;
+  }
+
+  const reponse = (j?.choices?.[0]?.message?.content || '').trim();
+  if (!reponse) {
+    console.error('Réponse Groq vide', JSON.stringify(j).slice(0, 300));
+    res.status(502).json({ erreur: 'Réponse vide du service IA.' });
+    return;
+  }
+  res.status(200).json({ reponse });
 }
