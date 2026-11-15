@@ -2000,3 +2000,7 @@ button {
   line-height: 1.65;
   color: var(--encre-doux);
 }
+
+.footer-lien {
+  margin: 8px 0 0;
+}

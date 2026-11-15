@@ -409,7 +409,7 @@ coefficients.
   requêtes vers Groq relèvent des conditions de Groq.
 - `VITE_GOOGLE_MAPS_API_KEY` est publique par construction. Il faut la restreindre à vos référents
   HTTP et à l'API Maps JavaScript uniquement, avec un quota de dépense.
-- Le rapport est produit localement ; les fonctions de partage utilisent ce qui est déjà à l'écran.
+- Le rapport est produit localement ; les fonctions de partage utilisent ce qui est déjà à l'écran. Un lien partageable (paramètres `lat`, `lon`, `nom`, `actuelle`, `suivante`, `cycle`, `historique`, `cheptel`, `capital`, `irrigation`) est écrit dans la barre d'adresse après chaque analyse, pour rouvrir ou partager une parcelle telle quelle.
 
 ## 14. Feuille de route vers un déploiement avec une coopérative
 

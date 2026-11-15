@@ -398,7 +398,7 @@ the Vercel function, CORS behaviour, and agronomic validity of the coefficients.
   Groq's terms.
 - `VITE_GOOGLE_MAPS_API_KEY` is public by construction. Restrict it to your own HTTP referrers and
   to the Maps JavaScript API only, with a spending quota.
-- The report is generated locally; the PDF/share features use what is already on screen.
+- The report is generated locally; the PDF/share features use what is already on screen. A shareable link (query parameters `lat`, `lon`, `nom`, `actuelle`, `suivante`, `cycle`, `historique`, `cheptel`, `capital`, `irrigation`) is written to the address bar after each analysis, so a parcelle can be reopened or shared as-is.
 
 ## 14. Roadmap to a cooperative deployment
 

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SearchBar from './components/SearchBar';
 import PointMap from './components/PointMap';
 import FeatureCards from './components/FeatureCards';
@@ -197,6 +197,24 @@ export default function App() {
   const requete = useRef(0);
   const fichierRef = useRef<HTMLInputElement>(null);
 
+  // Lien partageable : si l'URL contient lat/lon, on relance l'analyse au chargement.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const lat = Number(p.get('lat'));
+    const lon = Number(p.get('lon'));
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    const nom = p.get('nom') || `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+    if (p.get('actuelle')) setCultureActuelle(p.get('actuelle') as string);
+    if (p.get('suivante')) setCultureSuivante(p.get('suivante') as string);
+    if (p.get('cycle')) setCycleLibre(p.get('cycle') as string);
+    if (p.get('historique')) setHistorique(p.get('historique') as string);
+    if (p.get('cheptel')) setCheptel(p.get('cheptel') === '1');
+    if (p.get('capital')) setCapital(p.get('capital') as NiveauCapital);
+    if (p.get('irrigation')) setIrrigation(Number(p.get('irrigation')) || 0);
+    analyser(lat, lon, nom);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const importerFichier = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fichier = e.target.files?.[0];
     if (!fichier) return;
@@ -304,6 +322,23 @@ export default function App() {
     setProjection(projR.status === 'fulfilled' ? projR.value : null);
     setCondition(CONDITIONS[0]);
     setEtat({ statut: 'pret', profil });
+    // Lien partageable : on reflète la parcelle dans l'URL (sans recharger).
+    try {
+      const params = new URLSearchParams();
+      params.set('lat', String(lat));
+      params.set('lon', String(lon));
+      if (nom) params.set('nom', nom);
+      if (cultureActuelle) params.set('actuelle', cultureActuelle);
+      if (cultureSuivante) params.set('suivante', cultureSuivante);
+      if (cycleLibre) params.set('cycle', cycleLibre);
+      if (historique) params.set('historique', historique);
+      params.set('cheptel', cheptel ? '1' : '0');
+      params.set('capital', capital);
+      params.set('irrigation', String(irrigation));
+      window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    } catch {
+      /* ignore */
+    }
   };
 
   const conditions = useMemo<Condition[]>(() => {
@@ -778,6 +813,21 @@ export default function App() {
           <p className="footer-sources">
             NASA POWER · GPM IMERG (via POWER) · ERA5 / Copernicus · SoilGrids (ISRIC) · USGS 3DEP /
             SRTM · Open-Meteo · Google Maps · NASA GIBS (MODIS Terra) · OpenStreetMap
+          </p>
+          <p className="footer-lien">
+            <button
+              type="button"
+              className="lien"
+              onClick={() => {
+                try {
+                  navigator.clipboard.writeText(window.location.href);
+                } catch {
+                  window.prompt('Copiez ce lien :', window.location.href);
+                }
+              }}
+            >
+              Copier le lien de cette parcelle
+            </button>
           </p>
           <p className="footer-signature">
             Fait par l’équipe « Soil AI Crew » — développé par DAOUDA Abdou Chahid, Exaucé GBAGUIDI,
