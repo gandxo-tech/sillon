@@ -57,7 +57,7 @@ Environment variables, both optional:
 | Variable | Side | Effect when absent |
 | --- | --- | --- |
 | `VITE_GOOGLE_MAPS_API_KEY` | browser (`src/components/PointMap.tsx`, line 12) | embedded satellite view without click-to-move |
-| `GROQ_API_KEY` | server (`api/ia.js`) | `/api/ia` returns HTTP 503 with an explicit message; the rest of the app works |
+| `GROK_KEY` (alias: `GROQ_API_KEY`) | server (`api/ia.js`) | `/api/ia` returns HTTP 503 with an explicit message; the rest of the app works |
 
 No key is required to reach a full report.
 
@@ -370,7 +370,8 @@ the Vercel function, CORS behaviour, and agronomic validity of the coefficients.
   a Sillon server, and nothing is stored: no cookie, no local storage of the plot, no analytics.
 - The only server-side route is `POST /api/ia` (`api/ia.js`). It receives `contexte` (truncated to
   4 000 characters) and `question` (truncated to 500), forwards them to Groq
-  (`llama-3.1-8b-instant`) with the server-side `GROQ_API_KEY`, and returns plain text. The key is
+  (`llama-3.1-8b-instant`) with the server-side key read from `GROK_KEY`, falling back to
+  `GROQ_API_KEY`, and returns plain text. The key is
   never sent to the browser. Queries to Groq are subject to Groq's terms.
 - `VITE_GOOGLE_MAPS_API_KEY` is public by construction. Restrict it to your own HTTP referrers and
   to the Maps JavaScript API only, with a spending quota.

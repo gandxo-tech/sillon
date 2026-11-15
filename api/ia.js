@@ -4,11 +4,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const cle = process.env.GROQ_API_KEY;
+  // GROK_KEY est le nom utilisé sur ce projet ; GROQ_API_KEY reste accepté.
+  const cle = process.env.GROK_KEY || process.env.GROQ_API_KEY;
   if (!cle) {
     res.status(503).json({
       erreur:
-        'Clé API non configurée. Ajoutez GROQ_API_KEY dans les variables d’environnement Vercel (production et aperçu).',
+        'Clé API non configurée. Ajoutez GROK_KEY (ou GROQ_API_KEY) dans les variables d’environnement Vercel, pour la production et l’aperçu, puis redéployez.',
     });
     return;
   }

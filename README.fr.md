@@ -58,7 +58,7 @@ Variables d'environnement, toutes deux facultatives :
 | Variable | Côté | Effet si absente |
 | --- | --- | --- |
 | `VITE_GOOGLE_MAPS_API_KEY` | navigateur (`src/components/PointMap.tsx`, ligne 12) | vue satellite intégrée, sans déplacement du point au clic |
-| `GROQ_API_KEY` | serveur (`api/ia.js`) | `/api/ia` répond 503 avec un message explicite ; le reste de l'application fonctionne |
+| `GROK_KEY` (alias : `GROQ_API_KEY`) | serveur (`api/ia.js`) | `/api/ia` répond 503 avec un message explicite ; le reste de l'application fonctionne |
 
 Aucune clé n'est nécessaire pour obtenir un rapport complet.
 
@@ -378,7 +378,7 @@ coefficients.
   parcelle, pas de mesure d'audience.
 - La seule route serveur est `POST /api/ia` (`api/ia.js`). Elle reçoit `contexte` (tronqué à
   4 000 caractères) et `question` (tronquée à 500), les transmet à Groq (`llama-3.1-8b-instant`) avec
-  la clé `GROQ_API_KEY` côté serveur, et renvoie du texte brut. La clé n'est jamais envoyée au
+  la clé lue dans `GROK_KEY`, avec `GROQ_API_KEY` en secours, et renvoie du texte brut. La clé n'est jamais envoyée au
   navigateur. Les requêtes vers Groq relèvent des conditions de Groq.
 - `VITE_GOOGLE_MAPS_API_KEY` est publique par construction. Il faut la restreindre à vos référents
   HTTP et à l'API Maps JavaScript uniquement, avec un quota de dépense.
