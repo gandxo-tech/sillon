@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "tsc -p tsconfig.test.json && printf '{\"type\":\"commonjs\"}' > .cache/tests/package.json && node .cache/tests/moteur/__tests__/moteur.test.js && node .cache/tests/rapport/__tests__/explication.test.js",
+    "test": "tsc -p tsconfig.test.json && printf '{\"type\":\"commonjs\"}' > .cache/tests/package.json && node .cache/tests/moteur/__tests__/moteur.test.js && node .cache/tests/rapport/__tests__/explication.test.js && node .cache/tests/rapport/__tests__/leviers.test.js",
     "tableau": "tsc -p tsconfig.test.json && printf '{\"type\":\"commonjs\"}' > .cache/tests/package.json && node .cache/tests/moteur/__tests__/tableau.js"
   },
   "dependencies": {

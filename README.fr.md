@@ -87,6 +87,7 @@ src/
     rapport.ts              8 blocs, FCFA/ha, mois, tableau de comparaison
     explication.ts          6 archétypes de zone, explications en trois temps, 6 variantes
     variantes.ts            6 formulations par emplacement, déterministes, jamais réutilisées
+    leviers.ts              une action concrète par code de rejet, classée par cas débloqués
     technique.ts            bloc 8 replié (seul endroit où le jargon est autorisé)
     __tests__/              11 cas d'explication + tableau de contrôle
   components/               carte, graphiques, badge de verdict, choix des cultures, lecture audio
@@ -312,6 +313,13 @@ Huit blocs, dans cet ordre (`construireRapport`, `src/rapport/rapport.ts`, ligne
    hydrique et RUSLE, résultats de stabilité, codes de rejet, état de chaque source, trace de
    l'explication.
 
+Entre les blocs 4 et 5 s'intercale un bloc non numéroté, **ce que le moteur a écarté** : les cinq
+rotations rejetées les plus proches, et sous elles jusqu'à trois leviers issus de
+`src/rapport/leviers.ts`. Chaque code de rejet (`EAU`, `CAPITAL`, `MARCHE`, `RETOUR`, `PH`,
+`EROSION`, `CYCLE`) donne un geste concret, classé par nombre de cas qu'il débloquerait : un rejet
+est une action, pas une impasse. Quand rien ne passe du tout, le premier levier est repris dans le
+bloc 1, pour que la réponse ne soit jamais un « non » sec.
+
 L'argent est arrondi à 5 000 FCFA, les dates sont des noms de mois, et chaque chiffre est soit une
 valeur calculée par `calculerScenario`, soit un état de source.
 
@@ -340,15 +348,20 @@ valeur calculée par `calculerScenario`, soit un état de source.
   déclaré ; il ne modélise ni le crédit, ni la valeur du travail familial, ni le foncier.
 - **Aucune validation au champ.** La sortie du modèle n'a pas été comparée à des rendements mesurés
   sur des parcelles réelles ; c'est l'étape suivante, pas une affirmation.
+- **Le conseil IA n'est pas vérifié.** C'est un modèle de langage, pas un agronome : il peut être
+  fluide et faux. Il ne voit que la phrase de contexte construite par l'application (verdict, scores,
+  argent, eau, travail, mois de semis, ce qui bloque), pas le champ. Le plafond par adresse vit en
+  mémoire d'instance : c'est un frein pour un visiteur isolé, pas une garantie de quota entre
+  instances simultanées.
 
 ## 11. Tests
 
 ```bash
-npm test          # tsc -p tsconfig.test.json, puis deux suites sous Node
+npm test          # tsc -p tsconfig.test.json, puis trois suites sous Node
 npm run tableau   # affiche quelle rotation gagne sur les cinq scénarios de référence
 ```
 
-`npm test` exécute 19 cas :
+`npm test` exécute 24 cas :
 
 - `src/moteur/__tests__/moteur.test.ts` — 8 cas : une parcelle sèche avec priorité revenu ne retient
   aucune couverture seule ; sans cheptel, la luzerne n'est pas classée et la raison est écrite ; un
@@ -360,6 +373,9 @@ npm run tableau   # affiche quelle rotation gagne sur les cinq scénarios de ré
 - `src/rapport/__tests__/explication.test.ts` — 11 cas : un par archétype (détecté, cité, texte
   conforme), le cas neutre, la troncature à deux archétypes, le déterminisme, l'absence de
   répétition dans un même rapport, plus le tableau de contrôle imprimé archétype → archétype cité.
+- `src/rapport/__tests__/leviers.test.ts` — 5 cas : chaque rejet donne une action, trois leviers au
+  plus classés par nombre de cas débloqués, le déterminisme, le résumé transmis à l'IA, et l'absence
+  de jargon interne dans les actions.
 
 Non couvert : les appels réseau réels (toutes les réponses d'API passent par des jeux d'essai), le
 rendu dans le navigateur, la fonction Vercel, le comportement CORS, et la validité agronomique des
@@ -383,9 +399,14 @@ coefficients.
   ne traverse un serveur Sillon, et rien n'est stocké : pas de cookie, pas de sauvegarde locale de la
   parcelle, pas de mesure d'audience.
 - La seule route serveur est `POST /api/ia` (`api/ia.js`). Elle reçoit `contexte` (tronqué à
-  4 000 caractères) et `question` (tronquée à 500), les transmet à Groq (`llama-3.1-8b-instant`) avec
-  la clé lue dans `GROK_KEY`, avec `GROQ_API_KEY` en secours, et renvoie du texte brut. La clé n'est jamais envoyée au
-  navigateur. Les requêtes vers Groq relèvent des conditions de Groq.
+  4 000 caractères) et `question` (tronquée à 500), et les transmet à Groq avec la clé lue dans
+  `GROK_KEY`, `GROQ_API_KEY` en secours. Le modèle n'est pas figé dans le code : la route interroge
+  `/v1/models` avec cette clé, retient la première entrée réellement disponible d'une liste de
+  préférence, et garde ce choix dix minutes en mémoire. Chaque appel a un plafond de 20 secondes, un
+  maximum de six appels par cinq minutes et par adresse et par instance (HTTP 429 au-delà), une
+  réponse `Cache-Control: no-store`, et une consigne qui traite le contexte envoyé par le client
+  comme une donnée, jamais comme une instruction. La clé n'est jamais envoyée au navigateur. Les
+  requêtes vers Groq relèvent des conditions de Groq.
 - `VITE_GOOGLE_MAPS_API_KEY` est publique par construction. Il faut la restreindre à vos référents
   HTTP et à l'API Maps JavaScript uniquement, avec un quota de dépense.
 - Le rapport est produit localement ; les fonctions de partage utilisent ce qui est déjà à l'écran.

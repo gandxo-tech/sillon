@@ -129,13 +129,22 @@ function BlocVue({ bloc, verdict }: { bloc: Bloc; verdict: Rapport['verdict'] })
         </div>
       )}
 
-      {(bloc.puces?.length || bloc.rejets?.length) ? (
+      {bloc.puces?.length || bloc.rejets?.length ? (
         <div className="developpe">
-          <ul>
-            {(bloc.rejets ?? bloc.puces ?? []).map((p) => (
-              <li key={p}>{p}</li>
-            ))}
-          </ul>
+          {bloc.rejets?.length ? (
+            <ul>
+              {bloc.rejets.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+          ) : null}
+          {bloc.puces?.length ? (
+            <ul>
+              {bloc.puces.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       ) : null}
 
@@ -184,6 +193,7 @@ export default function App() {
   const [conseil, setConseil] = useState<string | null>(null);
   const [conseilCharge, setConseilCharge] = useState(false);
   const [conseilErreur, setConseilErreur] = useState<string | null>(null);
+  const [conseilModele, setConseilModele] = useState<string | null>(null);
   const requete = useRef(0);
   const fichierRef = useRef<HTMLInputElement>(null);
 
@@ -406,6 +416,7 @@ export default function App() {
     setConseilCharge(true);
     setConseilErreur(null);
     setConseil(null);
+    setConseilModele(null);
     const contexteTexte = [
       `Lieu : ${etat.profil.lieu.nom} (${etat.profil.lieu.lat.toFixed(3)}, ${etat.profil.lieu.lon.toFixed(3)}).`,
       rapport.cles.join(' '),
@@ -424,6 +435,7 @@ export default function App() {
       const j = await r.json();
       if (!r.ok) throw new Error(j?.erreur || 'Erreur');
       setConseil(j.reponse);
+      setConseilModele(typeof j.modele === 'string' ? j.modele : null);
     } catch (e) {
       setConseilErreur(e instanceof Error ? e.message : 'Erreur inconnue');
     } finally {
@@ -650,6 +662,11 @@ export default function App() {
                 </button>
                 {conseilErreur && <p className="conseil-erreur">{conseilErreur}</p>}
                 {conseil && <p className="conseil-reponse">{conseil}</p>}
+                {conseil && conseilModele && (
+                  <p className="conseil-note">
+                    Conseil généré par {conseilModele} · à confronter à votre terrain.
+                  </p>
+                )}
               </div>
 
               <details className="developpe">

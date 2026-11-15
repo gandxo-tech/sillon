@@ -86,6 +86,7 @@ src/
     rapport.ts              8 blocks, FCFA/ha, months, comparison table
     explication.ts          6 zone archetypes, 3-step explanations, 6 variants per slot
     variantes.ts            6 phrasings per report slot, deterministic, never reused
+    leviers.ts              one concrete action per rejection code, ordered by cases unlocked
     technique.ts            folded block 8 (the only place where jargon is allowed)
     __tests__/              11 explanation cases + control table
   components/               map, charts, verdict badge, culture picker, speech button
@@ -307,6 +308,12 @@ Eight blocks, in this order (`construireRapport`, `src/rapport/rapport.ts`, line
 8. **Sources and failures** — folded: candidate count, applied weights, water balance and RUSLE
    description, stability results, rejection codes, per-source status, explanation trace.
 
+Between blocks 4 and 5 sits an unnumbered block, **what the engine set aside**: the five nearest
+rejected rotations, and under them up to three levers from `src/rapport/leviers.ts`. Each rejection
+code (`EAU`, `CAPITAL`, `MARCHE`, `RETOUR`, `PH`, `EROSION`, `CYCLE`) maps to one concrete gesture,
+ordered by how many rejections it would unlock, so a rejection is an action and not a dead end.
+When nothing passes at all, the first lever is repeated in block 1: the answer is never a bare no.
+
 Money is rounded to 5 000 FCFA, dates are month names, and every figure is either a value
 computed by `calculerScenario` or a source status.
 
@@ -334,15 +341,19 @@ computed by `calculerScenario` or a source status.
   does not model credit, family labour valuation, or land tenure.
 - **No field validation.** The model output has not been compared to measured yields on real
   plots; that is the next step, not a claim.
+- **The AI advice is unverified.** It is a language model, not an agronomist: it can be fluent and
+  wrong. It sees only the context sentence the app builds (verdict, scores, money, water, work,
+  sowing months, and what blocks), not the field. The per-address cap lives in instance memory, so
+  it is a brake on a single visitor, not a quota guarantee across concurrent instances.
 
 ## 11. Tests
 
 ```bash
-npm test          # tsc -p tsconfig.test.json, then two suites in Node
+npm test          # tsc -p tsconfig.test.json, then three suites in Node
 npm run tableau   # prints which rotation wins across the five reference scenarios
 ```
 
-`npm test` runs 19 cases:
+`npm test` runs 24 cases:
 
 - `src/moteur/__tests__/moteur.test.ts` — 8 cases: a dry plot with income priority keeps no
   cover-only rotation; without livestock no lucerne is ranked and the reason is written; a maize
@@ -353,6 +364,9 @@ npm run tableau   # prints which rotation wins across the five reference scenari
 - `src/rapport/__tests__/explication.test.ts` — 11 cases: one per archetype (detected, cited, text
   conforms), the neutral case, two-archetype truncation, determinism, no repetition within one
   report, plus the printed control table archetype → cited archetype.
+- `src/rapport/__tests__/leviers.test.ts` — 5 cases: every rejection yields an action, at most
+  three levers ordered by the number of rejections they unlock, determinism, the summary handed to
+  the AI, and no engine jargon inside the actions.
 
 Not covered: real network calls (all API payloads are mocked through fixtures), browser rendering,
 the Vercel function, CORS behaviour, and agronomic validity of the coefficients.
@@ -374,10 +388,14 @@ the Vercel function, CORS behaviour, and agronomic validity of the coefficients.
 - Every agronomic call goes from the browser to the public API directly. No request passes through
   a Sillon server, and nothing is stored: no cookie, no local storage of the plot, no analytics.
 - The only server-side route is `POST /api/ia` (`api/ia.js`). It receives `contexte` (truncated to
-  4 000 characters) and `question` (truncated to 500), forwards them to Groq
-  (`llama-3.1-8b-instant`) with the server-side key read from `GROK_KEY`, falling back to
-  `GROQ_API_KEY`, and returns plain text. The key is
-  never sent to the browser. Queries to Groq are subject to Groq's terms.
+  4 000 characters) and `question` (truncated to 500), and forwards them to Groq with the
+  server-side key read from `GROK_KEY`, falling back to `GROQ_API_KEY`. The model is not hard-coded:
+  the route asks `/v1/models` with that key, takes the first entry of a preference list that is
+  actually available, and caches the choice for ten minutes. Each call has a 20-second ceiling, a
+  per-address cap of six calls per five minutes per instance (HTTP 429 beyond), a
+  `Cache-Control: no-store` response, and a system prompt that treats the client context as data,
+  never as instructions. The key is never sent to the browser. Queries to Groq are subject to
+  Groq's terms.
 - `VITE_GOOGLE_MAPS_API_KEY` is public by construction. Restrict it to your own HTTP referrers and
   to the Maps JavaScript API only, with a spending quota.
 - The report is generated locally; the PDF/share features use what is already on screen.

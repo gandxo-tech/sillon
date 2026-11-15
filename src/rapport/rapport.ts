@@ -13,6 +13,8 @@ import type { Profil } from '../analyse/features';
 import { arrondi, nombre } from '../moteur/des';
 import type { Critere, SortieMoteur } from '../moteur/moteur';
 import { LIBELLES_CRITERE } from '../moteur/moteur';
+import { leviers, resumeLeviers } from './leviers';
+import type { Levier } from './leviers';
 import { paragraphesTechniques } from './technique';
 import { SelecteurVariantes } from './variantes';
 import type { Donnees } from './variantes';
@@ -83,6 +85,8 @@ export interface Rapport {
   cles: string[];
   /** Les trois temps de l'explication simple, avec leur traçabilité. */
   explication: Explication;
+  /** Actions concrètes déduites des rejets, de la plus débloquante à la moins. */
+  leviers: Levier[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -342,13 +346,19 @@ export function construireRapport(
 
   const technique = paragraphesTechniques(sortie);
 
+  /* Un rejet n'est pas une fin de non-recevoir : on en tire des gestes. */
+  const leviersUtiles = leviers(sortie);
+
   /* --- Blocs, dans l'ordre --- */
   const blocs: Bloc[] = [
     {
       numero: 1,
       titre: 'La réponse',
       type: 'verdict',
-      paragraphes: [verdict.phrase],
+      paragraphes:
+        aucuneOption && leviersUtiles.length
+          ? [verdict.phrase, leviersUtiles[0].action]
+          : [verdict.phrase],
     },
     {
       numero: 2,
@@ -384,7 +394,14 @@ export function construireRapport(
       type: 'rejets',
       paragraphes: [
         'Ces rotations ont été retirées avant le classement, pas pénalisées.',
+        ...(leviersUtiles.length
+          ? ['Ce que vous pouvez changer, du plus utile au moins utile :']
+          : []),
       ],
+      puces: leviersUtiles.map(
+        (l) =>
+          `${l.action} — ${l.cas} rotation${l.cas > 1 ? 's' : ''} concernée${l.cas > 1 ? 's' : ''}.`,
+      ),
       rejets: sortie.rejets.slice(0, 5).map((r) => r.phrase),
     },
     {
@@ -445,5 +462,10 @@ export function construireRapport(
     `Semis en ${cal.semis}, récolte en ${cal.recolte}.`,
   ];
 
-  return { verdict, blocs, parle, cles, explication: explic };
+  /* Le conseil IA reçoit ce qui bloque, avec l'action qui débloque le plus.
+     Sans cela, il propose une rotation que le moteur a déjà écartée. */
+  const bloque = resumeLeviers(leviersUtiles);
+  if (bloque) cles.push(bloque);
+
+  return { verdict, blocs, parle, cles, explication: explic, leviers: leviersUtiles };
 }
