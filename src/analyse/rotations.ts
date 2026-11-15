@@ -1,5 +1,6 @@
 import type { Profil } from './features';
 import { CULTURES } from '../data/cultures';
+import { VOCABULAIRE_CULTURES_ETENDU } from '../data/vocabulaireCultures';
 import type { Culture } from '../data/cultures';
 
 export type { Culture } from '../data/cultures';
@@ -399,7 +400,8 @@ export function resoudreCulture(texte: string): CultureResolue {
   // Le site sait ainsi distinguer une culture d'autre chose (pipi, mama,
   // azerty, hello… sont refusés) tout en gardant les coefficients génériques
   // pour les cultures moins courantes.
-  const dansVocabulaire = VOCABULAIRE_CULTURES.has(cle);
+  const dansVocabulaire =
+    VOCABULAIRE_CULTURES.has(cle) || VOCABULAIRE_CULTURES_ETENDU.has(cle);
   if (!dansVocabulaire) {
     return { culture: cultureGenerique(brut), approx: true, valide: false };
   }
