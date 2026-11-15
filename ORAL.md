@@ -38,7 +38,7 @@ supplémentaire pour la trace.
 
 ## 2:40 – 3:20 — Les sources NASA, puis les limites, dites par nous
 
-- La pluie vient de NASA POWER, vingt-quatre ans.
+- La pluie vient de NASA POWER, vingt-cinq ans.
 - La température et l'évaporation aussi.
 - L'image du sol vient de MODIS, aujourd'hui.
 - La projection climatique vient d'ERA5 et d'un modèle CMIP6.
@@ -74,7 +74,7 @@ source.
 
 **« Pourquoi pas un conseiller humain ? »**
 Parce qu'il n'y en a pas à portée de main pour Awa, et qu'un conseiller humain
-ne peut pas lire vingt-quatre ans de pluie sur sa parcelle en une visite. Sillon
+ne peut pas lire vingt-cinq ans de pluie sur sa parcelle en une visite. Sillon
 n'est pas un remplaçant : c'est un point de départ que l'agronome peut
 contester, avec la trace à l'écran.
 

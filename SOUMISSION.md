@@ -48,7 +48,7 @@ her type of plot. They are not a single measurement.
 
 ## 5. NASA data used (endpoints)
 
-- `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M,T2M_MAX,T2M_MIN,GWETTOP` — NASA POWER, 2001–2024, daily.
+- `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M,T2M_MAX,T2M_MIN,GWETTOP` — NASA POWER, 2001–présent (mise à jour quotidienne).
 - `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/...` — MODIS Terra, current.
 - `https://climate-api.open-meteo.com/v1/climate` — ERA5 historical and CMIP6 projection (single model).
 - `https://rest.isric.org/soilgrids/v2.0/properties/query` and `/classification/query` — SoilGrids v2.

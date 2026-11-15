@@ -102,7 +102,7 @@ export async function chargerPower(
   lon: number,
   annees = 10,
 ): Promise<PowerData> {
-  const finAnnee = new Date().getUTCFullYear() - 1;
+  const finAnnee = new Date().getUTCFullYear();
   const debutAnnee = finAnnee - annees + 1;
   const url =
     `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=${PARAMS_POWER.join(',')}` +
@@ -185,7 +185,7 @@ export async function chargerEra5(
   lon: number,
   annees = 5,
 ): Promise<Era5Data> {
-  const finAnnee = new Date().getUTCFullYear() - 1;
+  const finAnnee = new Date().getUTCFullYear();
   const debutAnnee = finAnnee - annees + 1;
   const url =
     `https://archive-api.open-meteo.com/v1/archive?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
@@ -229,7 +229,7 @@ export interface HumiditeSolData {
 }
 
 export async function chargerHumiditeSol(lat: number, lon: number): Promise<HumiditeSolData> {
-  const annee = new Date().getUTCFullYear() - 1;
+  const annee = new Date().getUTCFullYear();
   const url =
     `https://archive-api.open-meteo.com/v1/archive?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
     `&start_date=${annee}-01-01&end_date=${annee}-12-31` +

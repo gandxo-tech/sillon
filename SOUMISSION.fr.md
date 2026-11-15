@@ -54,7 +54,7 @@ bâtis sur son type de parcelle. Ce n'est pas une mesure unique.
 
 ## 5. Données NASA utilisées (points d'accès)
 
-- `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M,T2M_MAX,T2M_MIN,GWETTOP` — NASA POWER, 2001–2024, quotidien.
+- `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M,T2M_MAX,T2M_MIN,GWETTOP` — NASA POWER, 2001–présent (mise à jour quotidienne).
 - `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/...` — MODIS Terra, actuel.
 - `https://climate-api.open-meteo.com/v1/climate` — ERA5 historique et projection CMIP6 (un seul modèle).
 - `https://rest.isric.org/soilgrids/v2.0/properties/query` et `/classification/query` — SoilGrids v2.
