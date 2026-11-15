@@ -1,3 +1,37 @@
+/**
+ * Conseil IA de Sillon — POST uniquement.
+ *
+ * Deux leçons apprises en production :
+ *  - la variable peut contenir une note collée avec la clé : on ne garde que
+ *    le premier mot, sinon l'en-tête d'autorisation est invalide ;
+ *  - un identifiant de modèle codé en dur finit par être retiré par le
+ *    fournisseur (404). On demande donc la liste réellement disponible avec
+ *    la clé du projet, puis on prend le premier modèle d'une liste de
+ *    préférence.
+ *
+ * Aucun message d'erreur ne recopie l'en-tête ni la clé : cette réponse est
+ * publique.
+ */
+
+const MODELE_PREFERE = [
+  'openai/gpt-oss-20b',
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'meta-llama/llama-4-scout-17b-16e-instruct',
+  'qwen/qwen3-32b',
+];
+
+async function choisirModele(cle) {
+  const r = await fetch('https://api.groq.com/openai/v1/models', {
+    headers: { Authorization: `Bearer ${cle}` },
+  });
+  if (!r.ok) return { modele: null, statut: r.status };
+  const j = await r.json();
+  const disponibles = new Set((j && j.data ? j.data : []).map((m) => m.id));
+  const modele = MODELE_PREFERE.find((m) => disponibles.has(m)) || null;
+  return { modele, statut: r.status, nombre: disponibles.size };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ erreur: 'Méthode non autorisée' });
@@ -5,7 +39,6 @@ export default async function handler(req, res) {
   }
 
   // GROK_KEY est le nom utilisé sur ce projet ; GROQ_API_KEY reste accepté.
-  // La valeur peut contenir une note collée avec la clé : seul le premier mot compte.
   const cle = String(process.env.GROK_KEY || process.env.GROQ_API_KEY || '')
     .trim()
     .split(/\s+/)[0];
@@ -23,16 +56,33 @@ export default async function handler(req, res) {
     data.question || 'Donne un conseil court et concret pour cette parcelle.',
   ).slice(0, 500);
 
+  let choix;
+  try {
+    choix = await choisirModele(cle);
+  } catch (e) {
+    console.error('Groq injoignable (liste des modèles)', (e && e.name) || 'réseau');
+    res.status(502).json({ erreur: 'Service IA injoignable (réseau).' });
+    return;
+  }
+
+  if (!choix.modele) {
+    console.error('Aucun modèle disponible', choix.statut, choix.nombre);
+    res.status(502).json({
+      erreur: `Aucun modèle disponible pour cette clé (statut ${choix.statut}).`,
+    });
+    return;
+  }
+
   let r;
   try {
     r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${cle.trim()}`,
+        Authorization: `Bearer ${cle}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: choix.modele,
         messages: [
           {
             role: 'system',
@@ -49,24 +99,23 @@ export default async function handler(req, res) {
       }),
     });
   } catch (e) {
-    // « TypeError » recouvre deux pannes très différentes : une valeur d'en-tête
-    // refusée (clé mal collée) et un appel réseau qui échoue. La cause est
-    // classée ici, jamais recopiée : le message d'origine peut contenir la clé
-    // et cette réponse est publique.
     const message = String((e && e.message) || '');
-    const cause = e && e.cause ? String(e.cause.code || e.cause.message || e.cause) : '';
-    const motif = /invalid header/i.test(message)
-      ? 'clé API mal formée'
-      : cause || 'réseau';
-    console.error('Groq injoignable', motif);
+    const motif = /invalid header/i.test(message) ? 'clé API mal formée' : 'réseau';
+    console.error('Groq injoignable (conseil)', motif);
     res.status(502).json({ erreur: `Service IA injoignable (${motif}).` });
     return;
   }
 
   if (!r.ok) {
-    const detail = await r.text().catch(() => '');
-    console.error('Groq a répondu', r.status, detail.slice(0, 300));
-    res.status(502).json({ erreur: `Service IA indisponible (${r.status}).` });
+    let code = '';
+    try {
+      const corps = await r.json();
+      code = (corps && corps.error && corps.error.code) || '';
+    } catch {
+      code = '';
+    }
+    console.error('Groq a répondu', r.status, code);
+    res.status(502).json({ erreur: `Service IA indisponible (${r.status}${code ? ` ${code}` : ''}).` });
     return;
   }
 
@@ -74,16 +123,21 @@ export default async function handler(req, res) {
   try {
     j = await r.json();
   } catch (e) {
-    console.error('Réponse Groq illisible', e && e.message);
+    console.error('Réponse Groq illisible');
     res.status(502).json({ erreur: 'Réponse illisible du service IA.' });
     return;
   }
 
-  const reponse = (j?.choices?.[0]?.message?.content || '').trim();
+  const reponse = (j && j.choices && j.choices[0] && j.choices[0].message
+    ? j.choices[0].message.content
+    : ''
+  ).trim();
+
   if (!reponse) {
-    console.error('Réponse Groq vide', JSON.stringify(j).slice(0, 300));
+    console.error('Réponse Groq vide');
     res.status(502).json({ erreur: 'Réponse vide du service IA.' });
     return;
   }
-  res.status(200).json({ reponse });
+
+  res.status(200).json({ reponse, modele: choix.modele });
 }
