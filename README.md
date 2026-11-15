@@ -1,5 +1,7 @@
 🇫🇷 Version française : [README.fr.md](./README.fr.md)
 
+<img src="public/logo-soil-ai-crew.svg" alt="Logo Soil AI Crew — NASA Space Apps 2026" width="120">
+
 # Sillon
 
 Sillon turns one geographic point into a ranked, auditable crop-rotation decision for a West
@@ -33,7 +35,7 @@ verbatim quotation of the official page.
 | Soil data: texture, organic carbon, pH, plant-available water | `src/api/sources.ts` — `solIsric` (293), `chargerClassificationSol` (514); aggregation in `src/analyse/features.ts` — `construireProfil` (260) |
 | Crop characteristics: seasonal water demand, rooting, nitrogen fixation, residue cover, return interval | `src/data/cultures.ts` — `Culture` (15), `CULTURES` (63), 23 crops |
 | Farmer priorities: income, food security, water saving, input autonomy, soil, labour | `src/App.tsx` — `CURSEURS` (49); `src/moteur/moteur.ts` — `calculerPoids` (76) |
-| Rotation strategies | `src/moteur/moteur.ts` — `construireEspace` (243), `chercherRotations` (671) |
+| Rotation strategies | `src/moteur/moteur.ts` — `construireEspace` (250), `chercherRotations` (680) |
 | Making the result usable and contestable by the farmer | `src/rapport/rapport.ts` (8 blocks), `src/rapport/explication.ts` (3-step plain-language layer) |
 
 ## 3. Run it in five steps
@@ -206,22 +208,24 @@ declared livestock also reject.
 
 ## 7. Decision engine
 
-There is no rotation catalogue. `construireEspace` (`moteur.ts`, line 243) takes the crops the
-farmer typed (up to 8, completed from the 23-crop base only to widen the search) and generates
-every ordered pair and ordered triple, deduplicated by crop id, discarding successions whose
-individual cycles do not fit the season (+15 days tolerance).
+There is no rotation catalogue. `construireEspace` (`moteur.ts`, line 250) takes the crops the
+farmer typed and generates every ordered pair and ordered triple **from those crops alone** (up to
+8, deduplicated by crop id), discarding successions whose individual cycles do not fit the season
+(+15 days tolerance). The 23-crop reference base is opened only when none of those successions
+survives the hard filters; the report then states that the search was widened. A crop the farmer
+does not own is never proposed silently.
 
 Why the hard-coded catalogue was removed: an 18-archetype library always returned one of its own
 rotations, so a farmer growing dolique or taro was answered with a rotation he does not practise.
 With a generated space, the farmer's own crops are the vocabulary, an unknown crop gets generic
 coefficients flagged as approximate, and the answer is always expressible with what he owns.
 
-Pipeline, in order (`chercherRotations`, line 671):
+Pipeline, in order (`chercherRotations`, line 680):
 
 1. weights from the six sliders;
 2. space generation from the typed crops;
 3. evaluation of each succession (water, erosion, nitrogen, organic matter, income, labour);
-4. hard filters, each returning a code and a French sentence (`verifier`, line 465);
+4. hard filters, each returning a code and a French sentence (`verifier`, line 472);
 5. reference candidate = the farmer's current rotation, evaluated but never filtered;
 6. ranking by weighted score; ties broken by id so the output is stable;
 7. rejection list, one representative per cause so a frequent cause cannot hide a rare one;
@@ -231,7 +235,7 @@ Pipeline, in order (`chercherRotations`, line 671):
 Rejection codes: `CYCLE`, `RETOUR`, `PH`, `EROSION`, `MARCHE`, `CAPITAL`, `EAU`.
 
 ```ts
-// src/moteur/moteur.ts, lines 507-523
+// src/moteur/moteur.ts, lines 514-530
 const budget = CAPITAL_FCFA[e.capital];
 const coutAnnuel = m.coutIntrantFcfaHa / s.cultures.length;
 if (coutAnnuel > budget) {
@@ -338,13 +342,14 @@ npm test          # tsc -p tsconfig.test.json, then two suites in Node
 npm run tableau   # prints which rotation wins across the five reference scenarios
 ```
 
-`npm test` runs 17 cases:
+`npm test` runs 19 cases:
 
-- `src/moteur/__tests__/moteur.test.ts` — 6 cases: a dry plot with income priority keeps no
+- `src/moteur/__tests__/moteur.test.ts` — 8 cases: a dry plot with income priority keeps no
   cover-only rotation; without livestock no lucerne is ranked and the reason is written; a maize
   history pushes maize out of the first two years; opposite priorities on the same plot give
   different rankings; the same input twice gives byte-identical output; an unknown crop is
-  accepted and actually searched.
+  accepted and actually searched; proposals stay inside the declared crops when those suffice; when
+  none of them passes, the reference base is opened and the output says the search was widened.
 - `src/rapport/__tests__/explication.test.ts` — 11 cases: one per archetype (detected, cited, text
   conforms), the neutral case, two-archetype truncation, determinism, no repetition within one
   report, plus the printed control table archetype → cited archetype.
@@ -392,6 +397,8 @@ the Vercel function, CORS behaviour, and agronomic validity of the coefficients.
 Soil AI Crew — a three-person team. Member names and contact details are the contributors listed
 on this repository's GitHub page; roles were: agronomy and field constraints, data and algorithms,
 interface and plain-language writing.
+
+Team logo: `public/logo-soil-ai-crew.svg`, used as the header mark and the favicon.
 
 Data credits: NASA POWER (NASA Langley Research Center), NASA GIBS/EOSDIS for MODIS imagery,
 Copernicus Climate Change Service (ERA5, ERA5-Land), ISRIC SoilGrids, USGS 3DEP, Open-Meteo,

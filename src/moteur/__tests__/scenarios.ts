@@ -59,7 +59,8 @@ export const CAS_2: ScenarioTest = {
   entree: entree({
     ctx: base({ pluieSaison: 750, et0Saison: 1150, awcMm: 70 }, 900),
     cheptel: false,
-    actuelle: [CULTURES.mais, CULTURES.niebe],
+    // La luzerne est déclarée par l'exploitant : c'est elle qui doit être écartée.
+    actuelle: [CULTURES.mais, CULTURES.niebe, CULTURES.luzerne],
   }),
 };
 
@@ -79,7 +80,8 @@ export const CAS_4A: ScenarioTest = {
   entree: entree({
     ctx: base({ pluieSaison: 680, et0Saison: 1150, awcMm: 55 }, 850),
     priorites: { ...PRIORITES_DEFAUT, revenu: 100, securiteAlimentaire: 10, sobrieteEau: 10, autonomieIntrants: 10 },
-    actuelle: [CULTURES.mil, CULTURES.niebe],
+    // Quatre cultures : avec deux seulement, l'ordre ne peut pas traduire les priorités.
+    actuelle: [CULTURES.mil, CULTURES.niebe, CULTURES.sorgho, CULTURES.arachide],
   }),
 };
 
@@ -88,7 +90,7 @@ export const CAS_4B: ScenarioTest = {
   entree: entree({
     ctx: base({ pluieSaison: 680, et0Saison: 1150, awcMm: 55 }, 850),
     priorites: { ...PRIORITES_DEFAUT, revenu: 10, securiteAlimentaire: 100, sobrieteEau: 100, autonomieIntrants: 100 },
-    actuelle: [CULTURES.mil, CULTURES.niebe],
+    actuelle: [CULTURES.mil, CULTURES.niebe, CULTURES.sorgho, CULTURES.arachide],
   }),
 };
 

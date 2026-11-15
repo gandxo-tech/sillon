@@ -436,16 +436,11 @@ export default function App() {
       <header className="top">
         <div className="wrap top-inner">
           <div className="marque-bloc">
-            <svg className="marque" viewBox="0 0 40 40" aria-hidden="true">
-              <path d="M4 13h32M4 20h32M4 27h32" stroke="#e8c36a" strokeWidth="3" strokeLinecap="round" />
-              <path
-                d="M8 13c4 0 4 7 8 7s4-7 8-7 4 7 8 7"
-                stroke="#f6f7f2"
-                strokeWidth="1.4"
-                fill="none"
-                opacity="0.5"
-              />
-            </svg>
+            <img
+              className="marque"
+              src="/logo-soil-ai-crew.svg"
+              alt="Logo Soil AI Crew — NASA Space Apps 2026"
+            />
             <div>
               <p className="marque-nom">Sillon</p>
               <p className="marque-role">Aide à la décision · rotations de cultures</p>

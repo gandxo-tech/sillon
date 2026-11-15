@@ -1,5 +1,7 @@
 🇬🇧 English version: [README.md](./README.md)
 
+<img src="public/logo-soil-ai-crew.svg" alt="Logo Soil AI Crew — NASA Space Apps 2026" width="120">
+
 # Sillon
 
 Sillon transforme un point géographique en une décision de rotation culturale classée et
@@ -34,7 +36,7 @@ citation mot pour mot de la page officielle.
 | Données de sol : texture, carbone organique, pH, eau disponible pour la plante | `src/api/sources.ts` — `solIsric` (293), `chargerClassificationSol` (514) ; agrégation dans `src/analyse/features.ts` — `construireProfil` (260) |
 | Caractéristiques des cultures : demande en eau saisonnière, enracinement, fixation d'azote, restes de récolte, délai de retour | `src/data/cultures.ts` — `Culture` (15), `CULTURES` (63), 23 cultures |
 | Priorités de l'exploitant : revenu, sécurité alimentaire, économie d'eau, autonomie en intrants, sol, main-d'œuvre | `src/App.tsx` — `CURSEURS` (49) ; `src/moteur/moteur.ts` — `calculerPoids` (76) |
-| Stratégies de rotation | `src/moteur/moteur.ts` — `construireEspace` (243), `chercherRotations` (671) |
+| Stratégies de rotation | `src/moteur/moteur.ts` — `construireEspace` (250), `chercherRotations` (680) |
 | Rendre le résultat utilisable et contestable par l'agriculteur | `src/rapport/rapport.ts` (8 blocs), `src/rapport/explication.ts` (couche en trois temps) |
 
 ## 3. Lancer en cinq étapes
@@ -207,11 +209,13 @@ ou une culture fourragère sans cheptel déclaré l'écartent aussi.
 
 ## 7. Moteur de décision
 
-Il n'y a pas de catalogue de rotations. `construireEspace` (`moteur.ts`, ligne 243) prend les
-cultures saisies par l'agriculteur (8 au maximum, complétées depuis la base de 23 cultures seulement
-pour élargir la recherche) et génère toutes les paires et tous les triplets ordonnés, dédoublonnés
-par identifiant de culture, en écartant les successions dont les cycles ne tiennent pas dans la
-saison (+15 jours de tolérance).
+Il n'y a pas de catalogue de rotations. `construireEspace` (`moteur.ts`, ligne 250) prend les
+cultures saisies par l'agriculteur et génère toutes les paires et tous les triplets ordonnés **à
+partir de ces seules cultures** (8 au maximum, dédoublonnés par identifiant), en écartant les
+successions dont les cycles ne tiennent pas dans la saison (+15 jours de tolérance). La base de
+référence de 23 cultures n'est ouverte que si aucune de ces successions ne survit aux filtres
+durs ; le rapport indique alors que la recherche a été élargie. Une culture que l'exploitant ne
+possède pas n'est jamais proposée en silence.
 
 Pourquoi le catalogue codé en dur a été supprimé : une bibliothèque de 18 archétypes renvoyait
 toujours une de ses propres rotations, si bien qu'un agriculteur qui cultive du dolique ou du taro
@@ -219,12 +223,12 @@ recevait une rotation qu'il ne pratique pas. Avec un espace généré, ses cultu
 une culture inconnue reçoit des coefficients génériques signalés comme approximatifs, et la réponse
 reste exprimable avec ce qu'il possède.
 
-Enchaînement (`chercherRotations`, ligne 671) :
+Enchaînement (`chercherRotations`, ligne 680) :
 
 1. poids issus des six curseurs ;
 2. génération de l'espace à partir des cultures saisies ;
 3. évaluation de chaque succession (eau, érosion, azote, matière organique, revenu, travail) ;
-4. filtres durs, chacun rendant un code et une phrase en français (`verifier`, ligne 465) ;
+4. filtres durs, chacun rendant un code et une phrase en français (`verifier`, ligne 472) ;
 5. référence = la rotation actuelle de l'agriculteur, évaluée mais jamais filtrée ;
 6. classement par score pondéré ; les égalités sont tranchées par identifiant, donc la sortie est stable ;
 7. liste des rejets, un représentant par cause, pour qu'une cause fréquente ne masque pas une cause rare ;
@@ -234,7 +238,7 @@ Enchaînement (`chercherRotations`, ligne 671) :
 Codes de rejet : `CYCLE`, `RETOUR`, `PH`, `EROSION`, `MARCHE`, `CAPITAL`, `EAU`.
 
 ```ts
-// src/moteur/moteur.ts, lignes 507-523
+// src/moteur/moteur.ts, lignes 514-530
 const budget = CAPITAL_FCFA[e.capital];
 const coutAnnuel = m.coutIntrantFcfaHa / s.cultures.length;
 if (coutAnnuel > budget) {
@@ -344,13 +348,15 @@ npm test          # tsc -p tsconfig.test.json, puis deux suites sous Node
 npm run tableau   # affiche quelle rotation gagne sur les cinq scénarios de référence
 ```
 
-`npm test` exécute 17 cas :
+`npm test` exécute 19 cas :
 
-- `src/moteur/__tests__/moteur.test.ts` — 6 cas : une parcelle sèche avec priorité revenu ne retient
+- `src/moteur/__tests__/moteur.test.ts` — 8 cas : une parcelle sèche avec priorité revenu ne retient
   aucune couverture seule ; sans cheptel, la luzerne n'est pas classée et la raison est écrite ; un
   historique de maïs écarte le maïs des deux premières années ; des priorités opposées sur la même
   parcelle donnent des classements différents ; la même entrée deux fois donne une sortie identique
-  au caractère près ; une culture inconnue est acceptée et réellement cherchée.
+  au caractère près ; une culture inconnue est acceptée et réellement cherchée ; les propositions
+  restent dans les cultures déclarées quand elles suffisent ; quand aucune ne passe, la base de
+  référence est ouverte et la sortie l'indique.
 - `src/rapport/__tests__/explication.test.ts` — 11 cas : un par archétype (détecté, cité, texte
   conforme), le cas neutre, la troncature à deux archétypes, le déterminisme, l'absence de
   répétition dans un même rapport, plus le tableau de contrôle imprimé archétype → archétype cité.
@@ -401,6 +407,8 @@ coefficients.
 Soil AI Crew — une équipe de trois personnes. Les noms et contacts sont les contributeurs listés sur
 la page GitHub de ce dépôt ; les rôles étaient : agronomie et contraintes de terrain, données et
 algorithmes, interface et rédaction en langage simple.
+
+Logo de l'équipe : `public/logo-soil-ai-crew.svg`, utilisé comme marque d'en-tête et favicon.
 
 Crédits de données : NASA POWER (NASA Langley Research Center), NASA GIBS/EOSDIS pour l'imagerie
 MODIS, Copernicus Climate Change Service (ERA5, ERA5-Land), ISRIC SoilGrids, USGS 3DEP, Open-Meteo,

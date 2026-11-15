@@ -24,7 +24,7 @@ export function paragraphesTechniques(sortie: SortieMoteur): string[] {
       .map((v) => `${v.pluiePct} % de pluie → ${nombre(v.premier, 1)} / ${nombre(v.troisieme, 1)}`)
       .join(' ; ') || 'non disponible';
 
-  return [
+  const lignes = [
     `Le moteur a examiné ${sortie.nombreCandidats} rotations possibles et en a écarté ${sortie.rejets.length} des plus proches de la vôtre.`,
     `Pondération appliquée, normalisée à 1 : ${ponderations}.`,
     `Le bilan hydrique part de l’ET0 de saison et du coefficient cultural de chaque plante. L’érosion est estimée par RUSLE à partir de la pluie annuelle, de la texture, de la pente mesurée et de la couverture.`,
@@ -33,6 +33,16 @@ export function paragraphesTechniques(sortie: SortieMoteur): string[] {
     `Test de stabilité : ${stabilite}.`,
     `Cycles : une culture doit tenir dans la saison ; pour une céréale et sa couverture semées ensemble, c’est le cumul qui est comparé à la saison plus 15 jours.`,
   ];
+
+  /* Aucune succession retenue avec ses seules cultures : on le dit, au lieu de
+     glisser des cultures qu'il ne possède pas sans prévenir. */
+  if (sortie.poolElargi) {
+    lignes.push(
+      'Vos cultures, seules, ne donnaient aucune succession retenue : la recherche a été élargie à la base de référence. Les cultures que vous n’avez pas déclarées sont donc proposées, à titre de comparaison.',
+    );
+  }
+
+  return lignes;
 }
 
 /** La source d’ET0 réellement utilisée, pour ne pas laisser croire à une mesure. */

@@ -54,7 +54,7 @@ export interface Culture {
   marche: 'eleveur' | 'marche' | 'autoconsommation';
   /** Énergie alimentaire produite par hectare, en Mcal (récolte moyenne). */
   caloriesMcalHa: number;
-  /** Grande famille agronomique, utilisée par les archétypes de rotation. */
+  /** Grande famille agronomique, utilisée par le moteur pour classer les successions. */
   typeCulture: 'cereale' | 'legumineuse' | 'tubercule' | 'couvert' | 'fourragere';
   /** Origine de la valeur : mesure connue, ou estimation assumée. */
   source?: 'mesure' | 'estime';

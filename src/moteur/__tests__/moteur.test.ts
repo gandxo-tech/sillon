@@ -12,12 +12,14 @@ import type { SortieMoteur } from '../moteur';
 import { CAS_1, CAS_2, CAS_3, CAS_4A, CAS_4B, CAS_5 } from './scenarios';
 
 const echecs: string[] = [];
+let total = 0;
 
 function verifier(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
 }
 
 function cas(nom: string, fn: () => void): void {
+  total += 1;
   try {
     fn();
     console.log(`  ok    ${nom}`);
@@ -121,10 +123,35 @@ cas('6. culture inconnue acceptée et réellement cherchée', () => {
   );
 });
 
+/* 7. Les propositions restent dans les cultures déclarées quand elles suffisent. */
+cas('7. propositions limitées aux cultures déclarées', () => {
+  const sortie = chercherRotations(CAS_5.entree);
+  const permises = new Set(CAS_5.entree.actuelle.map((c) => c.id));
+  verifier(sortie.classement.length > 0, 'classement vide');
+  verifier(!sortie.poolElargi, 'la base a été ouverte alors que les cultures déclarées suffisaient');
+  for (const candidat of sortie.classement) {
+    verifier(
+      candidat.suite.every((id) => permises.has(id)),
+      `${candidat.nom} propose une culture que l’exploitant n’a pas déclarée`,
+    );
+  }
+});
+
+/* 8. Si aucune culture déclarée ne passe, la base est ouverte et c'est annoncé. */
+cas('8. élargissement à la base, annoncé, quand rien ne passe', () => {
+  const sortie = chercherRotations(CAS_3.entree);
+  verifier(sortie.classement.length > 0, 'aucune proposition après élargissement');
+  verifier(sortie.poolElargi, 'la base aurait dû être ouverte : rien ne passait avec les cultures déclarées');
+  verifier(
+    sortie.classement.some((c) => c.suite.some((id) => id !== 'mais' && id !== 'niebe')),
+    'aucune culture de la base n’a été proposée après élargissement',
+  );
+});
+
 console.log('');
 if (echecs.length) {
   console.error(`${echecs.length} cas en échec : ${echecs.join(' | ')}`);
   (globalThis as unknown as { process: { exitCode: number } }).process.exitCode = 1;
 } else {
-  console.log('6 cas sur 6 passent.');
+  console.log(`${total} cas sur ${total} passent.`);
 }

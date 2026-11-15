@@ -95,9 +95,11 @@ button {
 }
 
 .marque {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   flex: none;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .marque-nom {

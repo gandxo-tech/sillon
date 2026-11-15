@@ -213,11 +213,17 @@ function valide(cultures: Culture[]): boolean {
 }
 
 /**
- * Pool : toutes les cultures saisies, puis la base pour élargir.
- * Aucune culture n'est exclue a priori : une culture inconnue de la base
- * arrive ici avec des coefficients génériques et participe à la recherche.
+ * Pool de recherche.
+ *
+ * Par défaut, il ne contient QUE les cultures de l'exploitant : on ne propose
+ * jamais une culture qu'il ne possède pas. La base de 23 cultures n'est
+ * ouverte qu'avec `elargir = true`, en dernier recours (voir `chercherRotations`),
+ * et le rapport l'annonce alors explicitement.
+ *
+ * Une culture inconnue de la base arrive ici avec des coefficients génériques
+ * et participe normalement à la recherche.
  */
-export function completerPool(saisies: Culture[]): Culture[] {
+export function completerPool(saisies: Culture[], elargir = false): Culture[] {
   const pool: Culture[] = [];
   const ajouter = (c: Culture | undefined) => {
     if (!c) return;
@@ -226,6 +232,7 @@ export function completerPool(saisies: Culture[]): Culture[] {
     pool.push(c);
   };
   for (const c of saisies) ajouter(c);
+  if (!elargir) return pool;
 
   const types: Culture['typeCulture'][] = ['cereale', 'legumineuse', 'tubercule', 'couvert', 'fourragere'];
   for (const t of types) {
@@ -240,8 +247,8 @@ export function completerPool(saisies: Culture[]): Culture[] {
  * Toutes les successions plausibles de deux ou trois cultures du pool,
  * dans l'ordre. C'est ici que se joue la recherche, pas dans un catalogue.
  */
-export function construireEspace(saisies: Culture[], saisonJours?: number): Succession[] {
-  const pool = completerPool(saisies);
+export function construireEspace(saisies: Culture[], saisonJours?: number, elargir = false): Succession[] {
+  const pool = completerPool(saisies, elargir);
   const out: Succession[] = [];
   const vus = new Set<string>();
 
@@ -575,6 +582,8 @@ export interface SortieMoteur {
   replis: Repli[];
   graine: number;
   nombreCandidats: number;
+  /** Vrai si la base a dû être ouverte faute de succession retenue avec vos cultures. */
+  poolElargi: boolean;
 }
 
 const definitionDe = (s: Succession): DefinitionScenario => ({
@@ -677,10 +686,20 @@ export function chercherRotations(e: EntreeMoteur): SortieMoteur {
 
   const graine = graineDepuis(e.lat, e.lon, e.actuelle.map((c) => c.id).join(','));
 
-  const espace = construireEspace(e.actuelle, e.ctx.saisonJours);
   const reference = candidatReference(e.actuelle, e, poids);
 
-  const base = classer(espace, e, poids, e.condition, historiqueIds);
+  /* Première passe : uniquement les cultures de l'exploitant. La base ne sert
+     qu'en dernier recours, si rien de ce qu'il cultive ne passe les filtres.
+     Il voit alors la mention « recherche élargie » dans le bloc technique. */
+  let espace = construireEspace(e.actuelle, e.ctx.saisonJours);
+  let base = classer(espace, e, poids, e.condition, historiqueIds);
+  let poolElargi = false;
+  if (!base.retenus.length) {
+    espace = construireEspace(e.actuelle, e.ctx.saisonJours, true);
+    base = classer(espace, e, poids, e.condition, historiqueIds);
+    poolElargi = true;
+  }
+
   const retenus: Candidat[] = base.retenus.slice(0, 8).map((r, i) => {
     const { s, m } = r;
     const ecarts = ecartsAvec(reference.metriques, m);
@@ -782,5 +801,6 @@ export function chercherRotations(e: EntreeMoteur): SortieMoteur {
     replis,
     graine,
     nombreCandidats: espace.length,
+    poolElargi,
   };
 }
